@@ -5,6 +5,9 @@ pragma solidity >=0.4.22 <0.9.0;
 import "./ERC721.sol";
 
 contract Artworks is ERC721 {
+
+    /** CONSTRUCTOR **/
+    address public manager;
     uint256 public priceIncreaseForLike;
     // for each number of likes L we decrease the reward by N units
     uint8 public numLikesDecrease;
@@ -15,9 +18,16 @@ contract Artworks is ERC721 {
         uint8 _numLikesDecrease,
         uint8 _decaymentUnit
     ) ERC721("Cryptogram", "CRG") {
+        manager = msg.sender;
         priceIncreaseForLike = _priceIncreaseForLike;
         numLikesDecrease = _numLikesDecrease;
         decaymentUnit = _decaymentUnit;
+    }
+
+    /** MODIFIERS **/
+    modifier onlyManager {
+        require(msg.sender == manager,"only manager");
+        _;
     }
 
     /** EVENTS **/
@@ -60,7 +70,7 @@ contract Artworks is ERC721 {
 
     mapping(string => bool) _IPFShashExists;
 
-    mapping(address => uint256) artworkSupportIndex;
+    mapping(address => uint) availableFundsForSupporter;
 
     /*** LOGIC ***/
     function getTotalSupply() external view returns (uint256) {
@@ -92,6 +102,7 @@ contract Artworks is ERC721 {
             });
 
         artworks.push(_artwork);
+        totalSupply += 1;
         uint256 artworkId = artworks.length - 1;
         _mint(msg.sender, artworkId);
         artworkIdtoIPFSHash[artworkId] = _artwork.IPFShash;
@@ -122,7 +133,7 @@ contract Artworks is ERC721 {
             uint256 totalArtworks = totalSupply;
             uint256 resultIndex = 0;
             uint256 artworkId;
-            for (artworkId = 1; artworkId <= totalArtworks; artworkId++) {
+            for (artworkId = 0; artworkId < totalArtworks; artworkId++) {
                 if (ownerOf(artworkId) == _owner) {
                     result[resultIndex] = artworkId;
                     resultIndex++;
@@ -140,11 +151,9 @@ contract Artworks is ERC721 {
         require(_artwork.creator != msg.sender, 'You cannot put a like in your own creations');
         require(!_isSupporterOfArtwork(_artworkId, msg.sender), 'You are already supporting this artwork');
         _artwork.totalLikes += 1;
-        uint256 supportIndex = _artwork.totalLikes;
-        // add supporter and register the like index
+        // add supporter
         artworks[_artworkId].supporters.push(msg.sender);
-        artworkSupportIndex[msg.sender] = supportIndex;
-        return supportIndex;
+        return _artwork.totalLikes;
     }
 
     function getTotalLikes(uint _artworkId) external view returns(uint) {
@@ -206,21 +215,24 @@ contract Artworks is ERC721 {
         uint totalLikes = _artwork.totalLikes;
         uint finalPrice = _artwork.initialPrice + priceIncreaseForLike * totalLikes;
         require(msg.value == finalPrice, 'You must pay the price!');
-
+        // pay the artist
         uint artistPrice = (finalPrice * (100 - _artwork.participationPercentage)) / 100;
         (bool success,) = payable(ownerOf(_artworkId)).call{value: artistPrice}('');
         require(success, 'Transfer to owner failed');
-        uint supportersPrice = finalPrice * _artwork.participationPercentage / 100;
+        // make the property transfer
+        _transfer(ownerOf(_artworkId), msg.sender, _artworkId);
+        _updateArtworkOnPurchase(_artworkId, finalPrice);
+
+        // register funds in order to supporters to get it later
+        uint supportersPrice = (finalPrice * _artwork.participationPercentage) / 100;
         uint supporterId;
         uint supporterPrice = supportersPrice / _artwork.totalLikes;
         for (supporterId = 0; supporterId < _artwork.totalLikes; supporterId++) {
-            address payable supporter = payable(_artwork.supporters[supporterId]);
-            (bool succeses,) = supporter.call{value: supporterPrice}('');
-            require(succeses, 'Transfer to supporters failed');
+            // address payable supporter = payable(_artwork.supporters[supporterId]);
+            // (bool succeses,) = supporter.call{value: supporterPrice}('');
+            // require(succeses, 'Transfer to supporters failed');
+            availableFundsForSupporter[_artwork.supporters[supporterId]] += supporterPrice;
         }
-
-        _transfer(ownerOf(_artworkId), msg.sender, _artworkId);
-        _updateArtworkOnPurchase(_artworkId, finalPrice);
         return true;
     }
 
@@ -232,4 +244,21 @@ contract Artworks is ERC721 {
         require(tmp != 0);
         return true;
     }
+
+    function getAvailableFundsForSupporter(address _supporter) public view returns(uint) {
+        return availableFundsForSupporter[_supporter];
+    }
+
+    function withdrawSupporterFunds() public {
+        require(availableFundsForSupporter[msg.sender] > 0, 'no funds available');
+        payable(msg.sender).transfer(availableFundsForSupporter[msg.sender]);
+        availableFundsForSupporter[msg.sender] = 0;
+    }
+
+    // function withdrawLostFunds() public onlyManager {
+    //     get funds blocked in the contract which are not in availableFundsForUser
+    //     ...
+    //     payable(msg.sender).transfer(address(this).balance);
+    // }
+
 }

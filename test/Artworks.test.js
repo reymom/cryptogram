@@ -123,39 +123,50 @@ contract('Cryptogram', (accounts) => {
 
     describe('artworks purchase', async() => {
 
-        it('buys artwork and distributes funds', async() => {
-            const artworkId = 0;
+        it('calculate prices and pays the artist', async() => {
             // account 7 will buy the artwork of account 0 supported by 1, 2, 3, 4, 5 and 6
-            let ethBalances = [];
-            for (var i = 0; i <= 6; i++) {
-                ethBalances.push(await web3.eth.getBalance(accounts[i]));
-            }
-
+            const artworkId = 0;
+            initialArtistBalance = await web3.eth.getBalance(accounts[0]);
+            // calculate artwork price
             const weiAmount = web3.utils.toWei('1.6', 'ether');
             const artworkPrice = await contract.getCurrentPriceOfArwork(artworkId);
             assert.equal(artworkPrice, weiAmount, 'Price correctly set');
-
+            // buy and transfer to artist
             await contract.buyArtworkToCreator(artworkId, { from: accounts[7], value: weiAmount });
-
-            const creatorGain = await web3.eth.getBalance(accounts[0]) - ethBalances[0];
+            const creatorGain = await web3.eth.getBalance(accounts[0]) - initialArtistBalance;
             assert.equal(creatorGain, weiAmount / 2, 'correct artist payment amount');
-            let supportersGain = 0;
-            for (var i = 1; i <= 6; i++) {
-                gain = await web3.eth.getBalance(accounts[i]) - ethBalances[i];
-                supportersGain += gain;
-            }
-            // TODO: take care of small deviations in payments
-            // assert.equal(supportersGain, weiAmount / 2);
-            assert.isBelow(
-                Math.abs(weiAmount / 2 - supportersGain), 
-                100000000,
-                'correct supporters payment'
-            )
         });
 
         it('transfers artwork property', async() => {
             newOwner = await contract.ownerOf(0);
             assert.equal(newOwner, accounts[7], 'correct new owner');
+        });
+
+        it('allows supporters to extract funds', async() => {
+            let initialBalances = [];
+            for (var i = 1; i <= 6; i++) {
+                initialBalances.push(await web3.eth.getBalance(accounts[i]));
+            }
+            // must handle precision, as we have not decimals
+            // TODO: handle this in the contract
+            //      with safemath
+            //      and maybe transfering up to a decimal precition and see the rest as admin comission :)
+            weiDecimalPrecision = 2;
+            const weiForSupporters = web3.utils.toWei('0.8', 'ether');
+            const weiForSupporter = (weiForSupporters / 6).toString().slice(0, -weiDecimalPrecision);
+            let leftFunds = 0;
+            for (var i = 1; i <= 6; i++) {
+                availableFunds = (await contract.getAvailableFundsForSupporter(accounts[i])).toString();
+                assert.equal(
+                    availableFunds.slice(0, -weiDecimalPrecision), 
+                    weiForSupporter, 
+                    'correct total funds for supporters'
+                );
+                await contract.withdrawSupporterFunds({from: accounts[i]});
+                leftFunds += (await contract.getAvailableFundsForSupporter(accounts[i])).toNumber();
+            }
+            await contract.withdrawSupporterFunds({from: accounts[1]}).should.be.rejected;
+            assert.equal(leftFunds, 0, 'funds extracted correctly');
         });
 
     });
