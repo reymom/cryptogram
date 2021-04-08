@@ -1,0 +1,40 @@
+.Wrapper {
+    margin: 20px;
+    border: 1px solid #dacaca;
+    border-radius: 10px;
+    padding: 3px;
+    box-sizing: border-box;
+}
+
+.Wrapper ul {
+    display: flex;
+    list-style: none;
+}
+
+.Wrapper ul li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 0px;
+}
+
+.Wrapper img {
+    border: 5px solid rgb(96, 58, 141);
+    transition: .5s ease;
+    object-fit: cover;
+    border-radius: 50%;
+    height: 100px;
+    width: 100px;
+}
+
+.Wrapper li img:hover {
+    transform: rotate(-5deg);
+    border: 5px solid rgb(174, 11, 255);
+}
+
+.Outer {
+    border-radius: 50%;
+    padding: 5px;
+    position: relative;
+    cursor: pointer;
+}

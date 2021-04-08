@@ -1,0 +1,317 @@
+.CreateTokenForm {
+    text-align: center;
+    margin: auto;
+    width: 50%;
+}
+
+.Container {
+    max-width: 93.5rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.Container img {
+    display: block;
+}
+
+.Btn {
+    display: inline-block;
+    font: inherit;
+    background: none;
+    border: none;
+    color: inherit;
+    padding: 0;
+    cursor: pointer;
+}
+
+.Btn:focus {
+    outline: 0.5rem auto #4d90fe;
+}
+
+.Profile {
+    padding: 5rem 0;
+}
+
+.Profile::after {
+    content: "";
+    display: block;
+    clear: both;
+}
+
+.ProfileImage {
+    float: left;
+    width: calc(33.333% - 1rem);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 3rem;
+}
+
+.ProfileImage img {
+    border-radius: 50%;
+    width: 60%;
+}
+
+.ProfileUserSettings,
+.ProfileStats,
+.ProfileBio {
+    float: left;
+    width: calc(66.666% - 2rem);
+}
+
+.ProfileUserSettings {
+    margin-top: 1.1rem;
+}
+
+.ProfileUserName {
+    display: inline-block;
+    font-size: 3.2rem;
+    font-weight: 300;
+}
+
+.ProfileEditBtn {
+    font-size: 1.4rem;
+    line-height: 1.8;
+    border: 0.1rem solid #dbdbdb;
+    border-radius: 0.3rem;
+    padding: 0 2.4rem;
+    margin-left: 2rem;
+}
+
+.FontAwesomeIcon {
+    margin-left: 10px;
+}
+
+.CreateTokenBtn {
+    font-size: 1.4rem;
+    line-height: 1.8;
+    border: 0.1rem solid #dbdbdb;
+    border-radius: 0.3rem;
+    padding: 0 2.4rem;
+    margin-left: 2rem;
+}
+
+.ProfileStats {
+    margin-top: 2.3rem;
+}
+
+.ProfileStats li {
+    display: inline-block;
+    font-size: 1.6rem;
+    line-height: 1.5;
+    margin-right: 4rem;
+    cursor: pointer;
+}
+
+.ProfileStats li:last-of-type{
+    margin-right: 0;
+}
+
+.ProfileBio {
+    font-size: 1.6rem;
+    font-weight: 400;
+    line-height: 1.5;
+    margin-top: 2.3rem;
+}
+
+.ProfileDescription
+.ProfileStatCount,
+.ProfileEditBtn,
+.CreateTokenBtn {
+    font-weight: 600;
+}
+
+/* Gallery Section */
+
+.Gallery {
+    display: flex;
+    flex-wrap: wrap;
+    margin: -1rem -1rem;
+    padding-bottom: 3rem;
+}
+
+.GalleryItem {
+    position: relative;
+    flex: 1 0 22rem;
+    margin: 1rem;
+    color: #fff;
+    cursor: pointer;
+}
+
+.GalleryItem:hover .GalleryItemInfo,
+.GalleryItem:focus .GalleryItemInfo {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+.GalleryItemInfo {
+    display: none;
+}
+
+.GalleryItemInfo li {
+    display: inline-block;
+    font-size: 1.7rem;
+    font-weight: 600;
+}
+
+.GalleryItemLikes {
+    margin-right: 2.2rem;
+}
+
+.GalleryItemType {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 2.5rem;
+    text-shadow: 0.2rem 0.2rem 0.2rem rgba(0, 0, 0, 0.1);
+}
+
+.GalleryImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+@media screen and (max-width: 40rem) {
+    .Profile {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 4rem 0;
+    }
+
+    .Profile::after {
+        display: none;
+    }
+
+    .ProfileImage,
+    .ProfileUserSettings,
+    .ProfileBio,
+    .ProfileStats {
+        float: none;
+        width: auto;
+    }
+
+    .ProfileImage img {
+        width: 7.7rem;
+    }
+
+    .ProfileUserSettings {
+        flex-basis: calc(100% - 10.7rem);
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 1rem;
+    }
+
+    .ProfileUserName {
+        font-size: 2.2rem;
+    }
+
+    .ProfileEditBtn
+    .CreateTokenBtn {
+        order: 1;
+        padding: 0;
+        text-align: center;
+        margin-top: 1rem;
+    }
+
+    .ProfileEditBtn
+    .CreateTokenBtn {
+        margin-left: 0;
+    }
+
+    .ProfileBio {
+        font-size: 1.4rem;
+        margin-top: 1.5rem;
+    }
+
+    .ProfileEditBtn,
+    .CreateTokenBtn,
+    .ProfileBio,
+    .ProfileStats {
+        flex-basis: 100%;
+    }
+
+    .ProfileStats {
+        order: 1;
+        margin-top: 1.5rem;
+    }
+
+    .ProfileStats ul {
+        display: flex;
+        text-align: center;
+        padding: 1.2rem 0;
+        border-top: 0.1rem solid #dadada;
+        border-bottom: 0.1rem solid #dadada;
+    }
+
+    .ProfileStats li {
+        font-size: 1.4rem;
+        flex: 1;
+        margin: 0;
+    }
+
+    .ProfileStatCount {
+        display: block;
+    }
+}
+
+@supports (display: grid) {
+    .Profile {
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        grid-template-rows: repeat(3, auto);
+        grid-column-gap: 3rem;
+        align-items: center;
+    }
+
+    .ProfileImage {
+        grid-row: 1 / -1;
+    }
+
+    .ProfileImage,
+    .ProfileUserSettings,
+    .ProfileStats,
+    .ProfileBio {
+        width: auto;
+        margin: 0;
+    }
+
+    @media (max-width: 40rem) {
+        .Profile {
+            grid-template-columns: auto 1fr;
+            grid-row-gap: 1.5rem;
+        }
+
+        .ProfileImage {
+            grid-row: 1 / 2;
+        }
+
+        .ProfileUserSettings {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            grid-gap: 1rem;
+        }
+
+        .ProfileEditBtn,
+        .CreateTokenBtn,
+        .ProfileStats,
+        .ProfileBio {
+            grid-column: 1 / -1;
+        }
+
+        .ProfileUserSettings,
+        .ProfileEditBtn,
+        .CreateTokenBtn
+        .ProfileBio,
+        .ProfileStats {
+            margin: 0;
+        }
+    }
+}
