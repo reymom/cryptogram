@@ -1,0 +1,21 @@
+.Loading {
+    text-align: center;
+    padding: 15px;
+    margin: 15px;
+}
+
+.Spinner {
+    margin: auto;
+    animation: rotation 8s infinite linear;
+    width: 25%;
+    opacity: 0.5;
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(2000deg);
+    }
+}

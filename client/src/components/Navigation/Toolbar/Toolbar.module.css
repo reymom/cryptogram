@@ -1,0 +1,81 @@
+.Header {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+.Navigation {
+    background-color: #e0e0e0;
+    top: 0;
+    left: 0;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    position: fixed;
+    width: 100%;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.HomeLogo {
+    margin: 10px;
+}
+
+.HomeLogo a {
+    color: black;
+}
+
+.SearchContainer {
+    width: 50%;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+
+.SearchInput {
+    width: 80%;
+    border-right: none;
+    padding: 5px;
+    height: 20px;
+    border-radius: 10px;
+    outline: none;
+    color: #9DBFAF;
+}
+
+.SearchInput:focus{
+    color: #00B4CC;
+}
+
+.SearchButton {
+    text-align: center;
+    cursor: pointer;
+}
+
+.NavigationUl {
+    padding: 0 10px;
+    list-style: none;
+}
+
+.NavigationUl li {
+    display: inline;
+    /* height: 50px; */
+    padding: 0px;
+    margin: 5px;
+}
+
+.NavigationUl li:hover {
+    color:rgb(104, 0, 98)
+}
+
+.NavigationUl li a {
+    color: rgb(32, 18, 18);
+    text-align: center;
+    padding: 10px;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.NavigationUl li a:hover,
+.NavigationUl li a:active,
+.NavigationUl li a.active {
+    color: rgb(104, 0, 98);
+}
