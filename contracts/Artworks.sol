@@ -101,7 +101,7 @@ contract Artworks is ERC721 {
         return totalSupply;
     }
 
-    function getNumtokensCreated(address _creator) external view returns(uint) {
+    function getNumTokensCreated(address _creator) external view returns(uint) {
         return tokensCreated[_creator];
     }
 
