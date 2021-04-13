@@ -12,20 +12,24 @@ import thunk from 'redux-thunk';
 
 import App from './App';
 // import reportWebVitals from './reportWebVitals';
+import artworkReducer from './store/reducers/artwork';
 import authReducer from './store/reducers/auth';
+import firebaseProfileReducer from './store/reducers/firebaseProfile';
+import IPFSReducer from './store/reducers/IPFS';
+import web3AddressReducer from './store/reducers/web3Address';
 import web3ObjectsReducer from './store/reducers/web3Objects';
-import addressInfoReducer from './store/reducers/addressInfo';
-import IPFSReducer from './store/reducers/getIPFS';
 
 import './index.css';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
 const rootReducer = combineReducers({
+    artwork: artworkReducer,
     auth: authReducer,
-    web3Objects: web3ObjectsReducer,
-    addressInfo: addressInfoReducer,
+    firebaseProfile: firebaseProfileReducer,
     IPFS: IPFSReducer,
+    web3Address: web3AddressReducer,
+    web3Objects: web3ObjectsReducer
 });
 
 const store = createStore( rootReducer, composeEnhancers(applyMiddleware(thunk)) );
@@ -33,7 +37,7 @@ const store = createStore( rootReducer, composeEnhancers(applyMiddleware(thunk))
 const app = (
     <Provider store={store}>
         <BrowserRouter>
-                <App />
+            <App />
         </BrowserRouter>
     </Provider>
 );

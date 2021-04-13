@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import * as actions from '../../store/actions';
-import classes from './CreateToken.module.css';
+import classes from './CreateArtwork.module.css';
 
 import Aux from '../../hoc/Aux/Aux';
 import Button from '../../components/UI/Button/Button';
@@ -121,7 +121,6 @@ class CreateToken extends React.Component {
 
     createArtworkHandler = async (event) => {
         event.preventDefault();
-        this.setState({ loading: true });
 
         const file = await this.props.IPFSInstance.add(this.state.selectedFile);
         if (file.path) {
@@ -135,13 +134,11 @@ class CreateToken extends React.Component {
                 this.props.accounts[0],
                 this.props.contract.methods
             )
-
             this.setState({ selectedFile: null, fileSrc: '' });
-            this.props.submitNewToken();
+            this.props.clickSubmitNewArtwork();
         } else {
             this.setState({ IPFSError: true })
         }
-
     }
 
     render() {
@@ -212,12 +209,17 @@ class CreateToken extends React.Component {
 
 const mapStateToProps = state => {
     return {
+        // web3 objects
         web3: state.web3Objects.web3,
         accounts: state.web3Objects.accounts,
         contract: state.web3Objects.contract,
+        // IPFS instance
         IPFSInstance: state.IPFS.IPFSInstance,
         loadingIPFS: state.IPFS.loadingIPFS,
-        // creatingArtwork: state.addressInfo.creatingArtwork
+        // artwork creation
+        createdArtwork: state.artwork.createArtwork,
+        creatingArtwork: state.artwork.creatingArtwork,
+        creationError: state.artwork.creationError
     };
 };
 

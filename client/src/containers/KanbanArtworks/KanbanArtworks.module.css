@@ -1,7 +1,7 @@
 .KanbanContainer {
     display: grid;
-    grid-auto-rows: 200px;
-    grid-gap: 1rem;
+    grid-auto-rows: 220px;
+    grid-gap: 2%;
     grid-auto-flow: row dense;
 }
 
@@ -19,6 +19,6 @@
 
 @media all and (min-width: 1024px) {
     .KanbanContainer {
-        grid-template-columns: repeat(6, 1fr);
+        grid-template-columns: repeat(4, 1fr);
     }
 }

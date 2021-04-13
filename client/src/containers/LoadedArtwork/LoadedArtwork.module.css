@@ -1,0 +1,101 @@
+.GoBack {
+    position: fixed;
+    width: 40px;
+    height: 40px;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 50%;
+    cursor: pointer;
+    /* box-sizing: border-box; */
+    /* justify-content: center; */
+    /* align-items: center; */
+    /* display: flex; */
+    /* flex-direction: row; */
+    border: 1px solid #dbdbdb;
+}
+
+.GoBack:hover {
+    background-color: #dbdbdb;
+}
+
+.GoBackIcon {
+    /* position: relative; */
+    padding: 5px;
+}
+
+.ArtworkContainer {
+    width: 70%;
+    margin: auto;
+    padding: 30px;
+}
+
+.Header {
+    text-align: center;
+}
+
+.UserAddress {
+    cursor: pointer;
+    color:rgb(42, 33, 33);
+}
+
+.UserAddress:hover {
+    color: rgb(119, 116, 116)
+}
+
+.ImageInfoContainer {
+    display: flex;
+    justify-content: space-between;
+    border: 1px solid rgb(66, 37, 93);
+    border-radius: 20px;
+}
+.ImageContainer {
+    border-radius: 20px 0px 0px 20px;
+    
+}
+
+.InfoContainer {
+    padding: 20px;
+    width: 100%;
+}
+
+.Image {
+    border-radius: 20px 0px 0px 20px;
+    object-fit: cover;
+    overflow: auto;
+}
+
+.LikeButtonContainer {
+    margin: auto;
+    width: 50%;
+    margin-top: 10px;
+    text-align: center;
+    border: 3px solid black;
+    cursor: pointer;
+}
+
+.LikeButtonContainer:hover {
+    background-color: rgb(119, 116, 116);
+}
+
+.ProcessingSupport {
+    width: 30%;
+    margin: auto;
+    padding: 4px;
+    text-align: center;
+}
+
+.ErrorContainer {
+    width: 30%;
+    margin: auto;
+    padding: 4px;
+    color: rgb(124, 13, 13);
+    text-align: center;
+    border: 1px dashed rgb(255, 0, 0);
+    border-radius: 50px;
+}
+
+.ErrorIcon {
+}
+
+.ErrorMessage{
+}

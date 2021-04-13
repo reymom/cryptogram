@@ -8,12 +8,14 @@ class Histories extends React.Component {
     componentDidMount () {
         this.props.contract.getPastEvents(
             'AllEvents', { fromBlock: 1 }, (err, events) => {
-                this.savePastEventsInfo(events);
+                if (events && events.length > 0) {
+                    this.savePastEventsInfo(events);
+                }
             }
         );
     };
 
-    savePastEventsInfo = (events) => {
+    savePastEventsInfo = ( events ) => {
         for (var i = 0; i<events.length; i++) {
             let event = events[i];
             if (event.event === 'newArtwork') {
@@ -34,7 +36,7 @@ class Histories extends React.Component {
 
     render() {
         let mintEventsRendered;
-        if (this.state.mintEvents.length > 0) {
+        if ( this.state.mintEvents.length > 0 ) {
             mintEventsRendered = this.state.mintEvents.map(mintal => {
                 let src = 'https://ipfs.io/ipfs/' + mintal.IPFShash;
                 return (

@@ -10,13 +10,11 @@ import Auth from './containers/Auth/Auth';
 import Logout from './containers/Auth/Logout/Logout';
 import Home from './containers/Home/Home';
 import Profile from './containers/Profile/Profile';
+import LoadedArtwork from './containers/LoadedArtwork/LoadedArtwork';
 
 class App extends React.Component {
 
-    componentDidMount() {
-        // get user
-        this.props.onTryAutoSignup();
-    }
+    componentDidMount() { this.props.onTryAutoSignup(); }
 
     render() {
         console.log('isAuthenticated = ', this.props.isAuthenticated);
@@ -34,8 +32,16 @@ class App extends React.Component {
                 <Switch>
                     <Redirect from="/" to="/home" exact />
                     <Redirect from="/auth" to="/home" exact />
+                    <Route
+                        path='/artworks/:id'
+                        component={ LoadedArtwork } 
+                    />
                     <Route path="/home" component={Home} />
-                    <Route path="/profile" component={Profile} />
+                    <Route
+                        path='/address/:id'
+                        component={ Profile } 
+                    />
+                    <Route exact path="/profile" component={Profile} />
                     <Route path="/logout" component={Logout} />
                 </Switch>
             )
@@ -56,7 +62,7 @@ class App extends React.Component {
 
 const mapStateToProps = state => {
     return {
-        isAuthenticated: state.auth.idToken !== null,
+        isAuthenticated: state.auth.idToken !== null
     };
 };
 

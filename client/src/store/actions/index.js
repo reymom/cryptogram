@@ -1,13 +1,22 @@
 export {
-    getWeb3Objects,
+    getWeb3Objects
 } from './web3Objects';
 export {
-    fetchAddressInfo,
-    createArtwork
-} from './addressInfo';
+    fetchAddressInfo
+} from './web3Address';
+export {
+    createArtwork,
+    supportArtwork,
+    clearSupportState
+} from './artwork';
 export {
     getIPFS
-} from './getIPFS.js';
+} from './IPFS';
+export {
+    editProfile,
+    followUser,
+    fetchProfile
+} from './firebaseProfile'
 export {
     auth,
     logout,
