@@ -32,7 +32,8 @@ contract Artworks is ERC721 {
 
     /** EVENTS **/
     event newArtwork(
-        address creator,
+        uint256 artworkId,
+        address indexed creator,
         string description,
         string tag,
         string IPFShash,
@@ -42,8 +43,10 @@ contract Artworks is ERC721 {
 
     event artworkBought(
         uint256 artworkId,
-        address collector,
-        uint256 purchasePrice
+        address indexed seller,
+        address indexed collector,
+        uint256 purchasePrice,
+        string IPFShash
     );
 
     event artworkSupported(
@@ -129,10 +132,11 @@ contract Artworks is ERC721 {
     }
 
     function getTokenInfo(uint _artworkId) external view returns (
-        uint, uint, uint, string memory, string memory, string memory, uint, uint, uint
+        address, uint, uint, uint, string memory, string memory, string memory, uint, uint, uint
     ) {
         Artwork memory _artwork = artworks[_artworkId];
         return (
+            _artwork.creator,
             _artwork.creationDate,
             _artwork.lastPurchaseDate,
             _artwork.priceSpent,
@@ -194,6 +198,7 @@ contract Artworks is ERC721 {
         _IPFShashExists[_IPFShash] = true;
 
         emit newArtwork(
+            artworkId,
             _artwork.creator,
             _artwork.description,
             _artwork.tag,
@@ -248,6 +253,11 @@ contract Artworks is ERC721 {
         _artwork.priceSpent += finalPrice;
     }
 
+    function getCurrentPrice(uint _artworkId) public view returns (uint) {
+        Artwork memory _artwork = artworks[_artworkId];
+        return _artwork.initialPrice + priceIncreaseForLike * _artwork.totalLikes;
+    }
+
     function buyArtworkToCreator(uint256 _artworkId) public payable returns (bool) {
         require(msg.sender != ownerOf(_artworkId), 'The artwork is already yours');
         Artwork memory _artwork = artworks[_artworkId];
@@ -273,6 +283,15 @@ contract Artworks is ERC721 {
             // require(succeses, 'Transfer to supporters failed');
             availableFundsForSupporter[_artwork.supporters[supporterId]] += supporterPrice;
         }
+
+        emit artworkBought(
+            _artworkId,
+            ownerOf(_artworkId),
+            msg.sender,
+            finalPrice,
+            _artwork.IPFShash
+        );
+
         return true;
     }
 
