@@ -1,21 +1,22 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Redirect } from 'react-router-dom';
+// import { Redirect } from 'react-router-dom';
+import { withRouter } from 'react-router-dom';
 
 import classes from './Auth.module.css';
 import * as actions from '../../store/actions/index';
+import { updateObject, checkValidity } from '../../shared/utility';
 
 import Input from '../../components/UI/Input/Input';
 import Button from '../../components/UI/Button/Button';
 import Spinner from '../../components/UI/Spinner/Spinner';
 
 class Auth extends React.Component {
-
     state = {
         controls: {
             email: {
                 elementType: 'input',
-                elementConfig: { type: 'email', placeholder: 'Mail Address' },
+                elementConfig: { type: 'email', placeholder: 'Email address' },
                 value: '',
                 validation: { required: true, isEmail: true },
                 valid: false,
@@ -28,72 +29,159 @@ class Auth extends React.Component {
                 validation: { required: true, minLength: 6 },
                 valid: false,
                 touched: false
-            }
+            },
+            repeatPassword: {
+                elementType: 'repeatPassword',
+                elementConfig: { type: 'password', placeholder: 'Repeat password' },
+                value: ['', ''],
+                validation: { matchPassword: false },
+                valid: false,
+                touched: false
+            },
+            name: {
+                elementType: 'input',
+                elementConfig: { type: 'text', placeholder: 'User name' },
+                value: '',
+                validation: { required: false, minLength: 1, maxLength: 50 },
+                valid: false,
+                touched: false
+            },
+            myEthereum: {
+                elementType: 'select',
+                label: 
+                    'YOUR ETHEREUM ACCOUNT. ' +
+                    '\n By default, we create and handle your ethereum wallet. ' +
+                    'You can select "Import from seed" to recover an existing address ' +
+                    'Or select "Inject from browser" if you prefer to use Metamask or similar. ' +
+                    'Either way you can change the address management in your settings later.'
+                ,
+                elementConfig: { 
+                    type: 'select', 
+                    placeholder: 'Ethereum Account',
+                    options: [
+                        {
+                            value: 'custom',
+                            displayValue: 'Create automatically'
+                        },
+                        {
+                            value: 'seed',
+                            displayValue: 'Import from seed'
+                        },
+                        {
+                            value: 'browserInjection', 
+                            displayValue: 'Inject from browser'
+                        }
+                    ]
+                },
+                value: 'custom', // default value
+                validation: { required: false },
+                valid: true,
+                touched: true
+            },
         },
-        isSignup: true
+        isLogin: true
     }
 
     componentDidMount() {
-        // console.log(this.props.onSetAuthRedirectPath('profile'));
-        this.props.onSetAuthRedirectPath('/profile');
+        let nextUrl = '/profile';
+        if ( this.props.history.location.pathname.includes('/register') ) {
+            nextUrl = '/settings';
+            this.switchPasswordValidation();
+        }
+        this.props.onSetAuthRedirectPath(nextUrl);
     }
 
-    checkValidity( value, rules ) {
-        let isValid = true;
-        if ( !rules ) { return true; }
-        if ( rules.required ) { isValid = value.trim() !== '' && isValid; }
-        if ( rules.minLength ) { isValid = value.length >= rules.minLength && isValid }
-        if ( rules.maxLength ) { isValid = value.length <= rules.maxLength && isValid }
-        if ( rules.isEmail ) {
-            const pattern = /[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?/;
-            isValid = pattern.test( value ) && isValid
+    switchPasswordValidation = () => {
+        this.setState(prevState => ({
+            ...prevState,
+            isLogin: !prevState.isLogin,
+            controls: {
+                ...prevState.controls,
+                repeatPassword: {
+                    ...prevState.controls.repeatPassword,
+                    validation: { 
+                        matchPassword: !prevState.controls.repeatPassword.validation.matchPassword
+                    }
+                },
+                name: {
+                    ...prevState.controls.name,
+                    validation: { 
+                        required: !prevState.controls.name.validation.required, 
+                    }
+                },
+                myEthereum: {
+                    ...prevState.controls.myEthereum,
+                    validation: { 
+                        required: !prevState.controls.myEthereum.validation.required, 
+                    }
+                }
+            }
+        }));
+    }
+
+    switchAuthModeHandler = () => {
+        let pathname = '/register';
+        if ( this.props.history.location.pathname.includes('/register') ) {
+            pathname = '/login';
         }
-        return isValid;
+        this.switchPasswordValidation();
+        this.props.history.push({ pathname: pathname});
     }
 
     inputChangedHandler = ( event, controlName ) => {
-        const updatedControls = {
-            ...this.state.controls,
-            [controlName]: {
-                ...this.state.controls[controlName],
-                value: event.target.value,
-                valid: this.checkValidity( 
-                    event.target.value, 
-                    this.state.controls[controlName].validation 
-                ),
+        let value = event.target.value;
+        if ( controlName === 'repeatPassword' ) {
+            value = [event.target.value, this.state.controls.password.value];
+        }
+
+        const updatedControls = updateObject( this.state.controls, {
+            [controlName]: updateObject( this.state.controls[controlName], {
+                value: value,
+                valid: checkValidity( value, this.state.controls[controlName].validation ),
                 touched: true
-            }
-        };
+            } )
+        } );
+
         this.setState( { controls: updatedControls } );
     }
 
     submitHandler = ( event ) => {
         event.preventDefault();
+
+        let myEthereum = 'custom';
+        if ( this.state.controls.myEthereum.value === 'browserInjection') {
+            myEthereum = 'browserInjection';
+        }
+
         this.props.onAuth(
             this.state.controls.email.value,
             this.state.controls.password.value,
-            this.state.isSignup
+            this.state.isLogin,
+            this.state.controls.name.value,
+            myEthereum
         );
-    }
-
-    switchAuthModeHandler = () => {
-        this.setState(prevState => {
-            return {isSignup: !prevState.isSignup};
-        });
     }
 
     render () {
         const formElementsArray = [];
         for ( let key in this.state.controls ) {
-            formElementsArray.push( {
-                id: key,
-                config: this.state.controls[key]
-            } );
+            if (key !== 'repeatPassword' && key !== 'name' && key !== 'myEthereum') {
+                formElementsArray.push( {
+                    id: key,
+                    config: this.state.controls[key]
+                } )
+            } else if ( !this.state.isLogin ) {
+                formElementsArray.push( {
+                    id: key,
+                    config: this.state.controls[key]
+                } );
+            }
         }
 
         let form = formElementsArray.map( formElement => (
             <Input
                 key={formElement.id}
+                label={formElement.config.label}
                 elementType={formElement.config.elementType}
                 elementConfig={formElement.config.elementConfig}
                 value={formElement.config.value}
@@ -109,35 +197,70 @@ class Auth extends React.Component {
 
         let errorMessage = null;
         if ( this.props.error ) {
+            let errorText = '';
+            switch ( this.props.error.message ) {
+                case ('EMAIL_EXISTS'):
+                    errorText = 'This email is already in use.';
+                    break;
+                case ('TOO_MANY_ATTEMPTS_TRY_LATER'):
+                    errorText = 'Too many attempts, please try later.';
+                    break;
+                case ('EMAIL_NOT_FOUND'):
+                    errorText = 'This email is not registered yet.';
+                    break;
+                case ('INVALID_PASSWORD'):
+                    errorText = 'Incorrect password, please try again.'
+                    break;
+                default:
+                    errorText = this.props.error.message;
+            }
+
             errorMessage = (
-                <p>{ this.props.error.message }</p>
+                <p className={classes.ErrorText}>{ errorText }</p>
             );
         }
 
-        let authRedirect = null;
-        console.log('this.props.isAuthenticated = ', this.props.isAuthenticated)
-        console.log('token = ', this.props.idToken);
-        console.log('userId = ', this.props.userId);
-        if ( this.props.isAuthenticated ) {
-            console.log('redirect = ', this.props.authRedirectPath)
-            authRedirect = <Redirect to={this.props.authRedirectPath}/>
+        // let authRedirect = null;
+        // console.log('this.props.isAuthenticated = ', this.props.isAuthenticated);
+        // console.log('token = ', this.props.idToken);
+        // console.log('userId = ', this.props.userId);
+        // if ( this.props.isAuthenticated ) {
+        //     authRedirect = <Redirect to={ this.props.authRedirectPath }/>
+        // }
+
+        let submitButton = <Button />;
+        let changeModeButton = <Button />;
+        if (this.state.isLogin) {
+            submitButton = <Button btnType='Login'>
+                LOG IN
+            </Button>
+            changeModeButton = <Button 
+                clicked={this.switchAuthModeHandler}
+                btnType="Danger">
+                    CREATE NEW ACCOUNT
+            </Button>
+        } else {
+            submitButton = <Button btnType='Register'>
+                CREATE ACCOUNT
+            </Button>
+            changeModeButton = <Button 
+                clicked={this.switchAuthModeHandler}
+                btnType="Danger">
+                    I ALREADY HAVE AN ACCOUNT
+            </Button>
         }
 
         return (
             <div className={classes.AuthContainer}>
-                { authRedirect }
-                { errorMessage }
+                <h1>Welcome to Cryptogram</h1>
+                {/* { authRedirect } */}
                 <form onSubmit={this.submitHandler}>
                     { form }
-                    <Button btnType="Success">
-                        {!this.state.isSignup ? 'LOG IN' : 'SIGN UP'}
-                    </Button>
+                    { errorMessage }
+                    { submitButton }
                 </form>
-                <Button 
-                    clicked={this.switchAuthModeHandler}
-                    btnType="Danger">
-                        SWITCH TO {this.state.isSignup ? 'LOG IN' : 'SIGN UP'}
-                </Button>
+                <hr className={classes.Hr}/>
+                { changeModeButton }
             </div>
         );
     };
@@ -147,8 +270,8 @@ const mapStateToProps = state => {
     return {
         loading: state.auth.loading,
         error: state.auth.error,
-        idToken: state.auth.idToken,
         userId: state.auth.userId,
+        idToken: state.auth.idToken,
         isAuthenticated: state.auth.idToken !== null,
         authRedirectPath: state.auth.authRedirectPath
     };
@@ -156,9 +279,14 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onAuth: ( email, password, isSignup ) => dispatch(actions.auth(email, password, isSignup)),
-        onSetAuthRedirectPath: (url) => dispatch(actions.setAuthRedirectPath(url))
+        onAuth: ( email, password, isLogin, name, myEthereum ) => dispatch(
+            actions.auth(email, password, isLogin, name, myEthereum)
+        ),
+        onSetAuthRedirectPath: ( url ) => dispatch(actions.setAuthRedirectPath(url)),
+        onCreateAccount: ( userId, idToken ) => dispatch(
+            actions.createAccount( userId, idToken )
+        )
     };
 };
 
-export default connect( mapStateToProps, mapDispatchToProps )(Auth);
+export default connect( mapStateToProps, mapDispatchToProps )( withRouter(Auth) );

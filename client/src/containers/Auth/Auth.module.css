@@ -1,11 +1,27 @@
 .AuthContainer {
-    margin: 20px auto;
-    width: 80%;
+    /* width: 40%; */
+    margin: auto;
     text-align: center;
     box-shadow: 0 2px 3px #ccc;
     border: 1px solid #eee;
+    border-radius: 10px;
     padding: 10px;
     box-sizing: border-box;
+}
+
+.AuthContainer h1 {
+    color: rgb(49, 11, 49);
+}
+
+.ErrorText {
+    color: rgb(209, 42, 42);
+}
+
+.Hr {
+    width: 100%;
+    border: 0;
+    border-top: 1px solid rgb(230, 217, 217);
+    margin: 15px 0 5px 0;
 }
 
 @media (min-width: 600px) {
