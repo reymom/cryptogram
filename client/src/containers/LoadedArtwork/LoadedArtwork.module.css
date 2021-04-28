@@ -6,11 +6,6 @@
     margin-top: 10px;
     border-radius: 50%;
     cursor: pointer;
-    /* box-sizing: border-box; */
-    /* justify-content: center; */
-    /* align-items: center; */
-    /* display: flex; */
-    /* flex-direction: row; */
     border: 1px solid #dbdbdb;
 }
 
@@ -19,12 +14,11 @@
 }
 
 .GoBackIcon {
-    /* position: relative; */
     padding: 5px;
 }
 
 .ArtworkContainer {
-    width: 70%;
+    width: 80%;
     margin: auto;
     padding: 30px;
 }
@@ -35,11 +29,11 @@
 
 .UserAddress {
     cursor: pointer;
-    color:rgb(42, 33, 33);
+    color:rgb(122, 116, 116);
 }
 
 .UserAddress:hover {
-    color: rgb(119, 116, 116)
+    color: rgb(107, 92, 92)
 }
 
 .ImageInfoContainer {
@@ -48,28 +42,48 @@
     border: 1px solid rgb(66, 37, 93);
     border-radius: 20px;
 }
+
 .ImageContainer {
+    display: flex;
+    flex-direction: column;
+    flex-basis: 100%;
+    flex: 5;
     border-radius: 20px 0px 0px 20px;
-    
 }
 
 .InfoContainer {
-    padding: 20px;
-    width: 100%;
+    flex: 2;
+}
+
+.InfoContainer ul {
+    margin: 20px;
+}
+
+.InfoContainer ul li {
+    padding: 10px;
 }
 
 .Image {
-    border-radius: 20px 0px 0px 20px;
+    width: 100%;
+    padding: 0;
+    border-radius: 20px 0 0 20px;
     object-fit: cover;
     overflow: auto;
 }
 
+.SupportBuyContainer {
+    display: flex;
+    /* flex-direction: column; */
+    justify-content: space-between;
+}
+
 .LikeButtonContainer {
-    margin: auto;
-    width: 50%;
-    margin-top: 10px;
-    text-align: center;
-    border: 3px solid black;
+    /* margin: auto; */
+    /* width: 60%; */
+    /* margin-top: 20px; */
+    /* text-align: center; */
+    border: 3px solid rgb(138, 88, 88);
+    border-radius: 10px;
     cursor: pointer;
 }
 
@@ -77,7 +91,38 @@
     background-color: rgb(119, 116, 116);
 }
 
-.ProcessingSupport {
+.BuyContainer {
+    border: 2px solid rgb(75, 128, 81);
+    border-radius: 10px;
+    cursor: pointer;
+    width: 10%;
+    text-align: center;
+    margin: auto;
+}
+
+.BuyContainer:hover {
+    background-color: rgb(154, 192, 158);
+}
+
+.BuyButton {
+    padding: 5px;
+}
+
+.Supporters {
+    /* margin: auto; */
+    margin-top: 10px;
+    text-align: center;
+    color:rgb(119, 116, 116)
+}
+
+.Supporters ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+    color: rgb(66, 37, 93)
+}
+
+.Processing {
     width: 30%;
     margin: auto;
     padding: 4px;
