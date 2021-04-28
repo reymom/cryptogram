@@ -1,0 +1,58 @@
+.SideDrawer {
+    position: fixed;
+    width: 280px;
+    max-width: 70%;
+    height: 100%;
+    right: 0;
+    top: 0;
+    z-index: 200;
+    background-color: rgb(182, 145, 145);
+    padding: 32px 16px;
+    box-sizing: border-box;
+    transition: transform 0.3s ease-out;
+    text-align: center;
+}
+
+.ImageProfile img {
+    object-fit: cover;
+    width: 80px;
+    height: 80px;
+    border: 2px solid #d8b3b3;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+
+    background: linear-gradient(to right, rgb(114, 114, 126), rgb(95, 109, 126), rgb(165, 159, 206), rgb(123, 113, 187));
+}
+
+.Hr {
+    width: 100%;
+    border: 0;
+    border-top: 1px solid rgb(230, 217, 217);
+    margin: 10px 0 10px 0;
+}
+
+.EthBalanceContainer {
+    margin-bottom: 20px;
+}
+
+.AvailableFundsContainer {
+    margin-top: 20px;
+}
+
+.RewardsButton {
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    background-color: rgb(204, 209, 199);
+}
+
+.Open {
+    transform: translateX(0);
+}
+
+.Close {
+    transform: translateX(+100%);
+}

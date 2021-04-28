@@ -1,40 +1,90 @@
-.Wrapper {
-    margin: 20px;
+.HistoriesBar {
+    margin: 0 0 10px 0;
+    padding: 0;
     border: 1px solid #dacaca;
-    border-radius: 10px;
-    padding: 3px;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
     box-sizing: border-box;
-}
-
-.Wrapper ul {
     display: flex;
-    list-style: none;
 }
 
-.Wrapper ul li {
+.BarInfo {
+    width: 1.2%;
+    font-size: 0.9rem;
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    background-color: rosybrown;
+    color: rgb(58, 1, 119);
+    text-align: center;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    margin-right: 0px;
+    justify-content: center;
 }
 
-.Wrapper img {
-    border: 5px solid rgb(96, 58, 141);
+.BarElements {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    list-style: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.BarElements li {
+    border-radius: 50%;
+    cursor: pointer;
+    flex-direction: column;
+    align-items: center;
+    padding: 0;
+    margin: 10px;
+}
+
+.HistoriesBar img {
     transition: .5s ease;
     object-fit: cover;
     border-radius: 50%;
-    height: 100px;
-    width: 100px;
+    height: 75px;
+    width: 75px;
 }
 
-.Wrapper li img:hover {
+.HistoriesBar li img:hover {
     transform: rotate(-5deg);
-    border: 5px solid rgb(174, 11, 255);
 }
 
-.Outer {
-    border-radius: 50%;
-    padding: 5px;
-    position: relative;
-    cursor: pointer;
+.NotVisited {
+    border: 5px solid rgb(46, 2, 97);
+    animation: borderchangecolor 2s infinite;
+}
+
+.NotVisited:hover {
+    animation: none;
+    border: 5px solid rgb(93, 79, 109);;
+}
+
+@keyframes borderchangecolor {
+    0% {border-color: rgb(46, 2, 97);}
+    25% {border-color: rgb(66, 34, 102);}
+    50% {border-color: rgb(99, 78, 122);}
+    75% {border-color: rgb(66, 34, 102);}
+    100% {border-color: rgb(46, 2, 97);}
+}
+
+.Visited {
+    border: 5px solid rgb(240, 237, 243);
+}
+
+.Visited:hover {
+    border: 5px solid rgb(213, 230, 245);
+}
+
+.EmptyHistories {
+    height: 95px; /*imagewidth=75 margintop=marginbottom=10px */
+    width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: rgb(96, 58, 141);
 }

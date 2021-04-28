@@ -14,6 +14,7 @@ import App from './App';
 // import reportWebVitals from './reportWebVitals';
 import artworkReducer from './store/reducers/artwork';
 import authReducer from './store/reducers/auth';
+import contractEventsReducer from './store/reducers/contractEvents';
 import firebaseProfileReducer from './store/reducers/firebaseProfile';
 import IPFSReducer from './store/reducers/IPFS';
 import web3AddressReducer from './store/reducers/web3Address';
@@ -26,6 +27,7 @@ const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 const rootReducer = combineReducers({
     artwork: artworkReducer,
     auth: authReducer,
+    contractEvents: contractEventsReducer,
     firebaseProfile: firebaseProfileReducer,
     IPFS: IPFSReducer,
     web3Address: web3AddressReducer,

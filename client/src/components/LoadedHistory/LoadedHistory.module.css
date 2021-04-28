@@ -1,0 +1,47 @@
+.ArtworkContainer {
+    width: 100%;
+}
+
+.Restart {
+    animation: 'none';
+}
+
+.TimeBar {
+    margin: 1rem;
+    width: 100%;
+    overflow: hidden;
+    /* border: 1px solid rgb(39, 12, 12) */
+}
+
+.TimeBar div {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+
+    height: 5px;
+    transform-origin: right center;
+    background: linear-gradient(to bottom, rgb(134, 13, 19), rgb(40, 23, 187));
+
+    animation: roundtime 5s linear forwards;
+    animation-iteration-count: infinite;
+}
+
+@keyframes roundtime {
+    to {
+        transform: scaleX(0);
+    }
+}
+
+.ArtworkImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 20px;
+}
+
+.InfoContainer {
+    text-align: center;
+    color: rgb(39, 12, 12);
+}
