@@ -1,22 +1,35 @@
 export {
-    getWeb3Objects
+    getWeb3Objects,
+    getWeb3Accounts,
+    createAccount
 } from './web3Objects';
 export {
-    fetchAddressInfo
+    fetchAddressInfo,
+    fetchAvailableFunds,
+    getBalance,
+    claimRewards
 } from './web3Address';
 export {
+    fetchArtworks,
     createArtwork,
     supportArtwork,
-    clearSupportState
+    clearSupportState,
+    purchaseArtwork,
+    clearPurchaseState
 } from './artwork';
+export {
+    fetchEvents,
+    setEventVisited
+} from './contractEvents';
+export {
+    getUserIdFromAddress,
+    fetchProfile,
+    editProfile,
+    followUser
+} from './firebaseProfile';
 export {
     getIPFS
 } from './IPFS';
-export {
-    editProfile,
-    followUser,
-    fetchProfile
-} from './firebaseProfile'
 export {
     auth,
     logout,

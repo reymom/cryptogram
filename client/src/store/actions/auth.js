@@ -1,6 +1,9 @@
 import axios from 'axios';
+import axiosProfile from '../../axios-profiles';
 
 import * as actionTypes from './actionTypes';
+
+import { createAccount } from './web3Objects';
 
 export const authStart = () => {
     return {
@@ -40,7 +43,7 @@ export const checkAuthTimeout = (expirationTime) => {
     };
 };
 
-export const auth = ( email, password, isSignup ) => {
+export const auth = ( email, password, isLogin, name, myEthereum ) => {
     return dispatch => {
         dispatch( authStart() );
         const authData = {
@@ -49,17 +52,40 @@ export const auth = ( email, password, isSignup ) => {
             returnSecureToken: true
         };
         let endpoint = 'https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=';
-        if ( !isSignup ) {
+        if ( isLogin ) {
             endpoint = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
         }
         
         axios.post(endpoint + process.env.REACT_APP_FIREBASE_API_KEY, authData)
             .then(response => {
+                const userId = response.data.localId;
+                const idToken = response.data.idToken;
                 const expirationDate = new Date(new Date().getTime() + response.data.expiresIn * 1000);
-                localStorage.setItem('idToken', response.data.idToken);
+                localStorage.setItem('userId', userId);
+                localStorage.setItem('idToken', idToken);
                 localStorage.setItem('expirationDate', expirationDate);
-                localStorage.setItem('userId', response.data.localId);
-                dispatch(authSuccess( response.data.idToken, response.data.localId ));
+
+                // Register name if new user
+                if ( !isLogin ) {
+                    console.log('name = ', name, 'myEthereum = ', myEthereum);
+
+                    const publicPut = axiosProfile.put( '/profile/' + userId + '/publicInfo.json?auth=' + idToken, 
+                        { name: name }
+                    );
+                    const privatePut = axiosProfile.put( '/profile/' + userId + '/privateInfo.json?auth=' + idToken, 
+                        { myEthereum: myEthereum }
+                    );
+                    axios.all([publicPut, privatePut]).then(axios.spread((...responses) => {
+                        console.log('responsePublic = ', responses[0]);
+                        console.log('responsePrivate = ', responses[1]);
+                    })).catch(errors => {
+                        console.log('errors = ', errors);
+                    })
+
+                    dispatch( createAccount( userId, idToken ) );
+                }
+                
+                dispatch(authSuccess( idToken, userId ));
                 dispatch(checkAuthTimeout( response.data.expiresIn ));
             })
             .catch(error => {
@@ -69,10 +95,7 @@ export const auth = ( email, password, isSignup ) => {
 };
 
 export const setAuthRedirectPath = ( path ) => {
-    return {
-        type: actionTypes.SET_AUTH_REDIRECT_PATH,
-        path: path
-    };
+    return { type: actionTypes.SET_AUTH_REDIRECT_PATH, path: path };
 };
 
 export const authCheckState = () => {
