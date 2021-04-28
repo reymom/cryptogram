@@ -6,11 +6,14 @@ import {
     faSearch, 
     faCommentsDollar, 
     faUserAstronaut,
-    faSignInAlt,
+    faUserCog,
     faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 
 import classes from './Toolbar.module.css';
+
+import Backdrop from '../../UI/Backdrop/Backdrop';
+import Button from '../../UI/Button/Button';
 
 const toolbar = props => (
     <header className={classes.Header}>
@@ -31,40 +34,64 @@ const toolbar = props => (
                     
             </div>
 
-            <ul className={classes.NavigationUl}>
-                <li>
-                    <NavLink to="/notifications" activeClassName={classes.active}>
-                        <FontAwesomeIcon 
-                                className={classes.SearchIcon} icon={faCommentsDollar} size="3x"/>
-                    </NavLink>
-                </li>
+            <Backdrop show={ props.showDropdown } clicked={ props.closeDropdown } />
+            <div className={classes.ProfileNavigationContainer}>
                 {
                     props.isAuthenticated 
-                    ? <li>
-                        <NavLink to="/profile" activeClassName={classes.active}>
+                    ?
+                    <ul className={classes.NavigationUl}>
+                        <li>
                             <FontAwesomeIcon 
-                                className={classes.SearchIcon} icon={faUserAstronaut} size="3x"/>
-                        </NavLink>
+                                onClick={ props.notificationsClicked }
+                                className={ classes.NotificationIcon } 
+                                icon={ faCommentsDollar } size="4x"
+                            />
                         </li>
-                    : null
+                        <li>
+                            <div className={classes.ImageProfile}>
+                                <img
+                                    src={props.profileImgSrc} 
+                                    alt={props.profileImgSrc}
+                                    onClick={ props.profileImgClicked } />
+                            </div>
+                            <div 
+                                onClick={props.navClicked}
+                                className={[
+                                    classes.DropdownProfile, props.showDropdown? classes.ShowDropdown : ''
+                            ].join(' ')}>
+                                <NavLink to="/profile" activeClassName={classes.active}>
+                                    <FontAwesomeIcon 
+                                        className={classes.ConfigIcon} icon={faUserAstronaut}/>
+                                    My Profile
+                                </NavLink>
+                                <NavLink to="/settings" activeClassName={classes.active}>
+                                    <FontAwesomeIcon 
+                                        className={classes.ConfigIcon} icon={faUserCog}/>
+                                    Settings
+                                </NavLink>
+                                <hr className={classes.Hr}/>
+                                <NavLink to="/logout">
+                                    <FontAwesomeIcon 
+                                        className={classes.ConfigIcon} icon={faSignOutAlt}/>
+                                    Logout
+                                </NavLink>
+                            </div>
+                        </li>
+                    </ul>
+                    : <div className={classes.AuthContainer}>
+                        <Button btnType="Login">
+                            <NavLink to="/login" activeClassName={classes.active}>
+                                Login
+                            </NavLink>
+                        </Button>
+                        <Button btnType="Register">
+                            <NavLink to="/register" activeClassName={classes.active}>
+                                Register
+                            </NavLink>
+                        </Button>
+                    </div>
                 }
-                {
-                    !props.isAuthenticated
-                    ? <li>
-                        <NavLink to="/auth" activeClassName={classes.active}>
-                        <FontAwesomeIcon 
-                                className={classes.SearchIcon} icon={faSignInAlt} size="3x"/>
-                        </NavLink>
-                    </li>
-                    : <li>
-                        <NavLink to="/logout" activeClassName={classes.active}>
-                            <FontAwesomeIcon 
-                                className={classes.SearchIcon} icon={faSignOutAlt} size="3x"/>
-                        </NavLink>
-                    </li>
-                }
-
-            </ul>
+            </div>
         </nav>
     </header>
 );

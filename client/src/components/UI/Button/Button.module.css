@@ -1,23 +1,25 @@
 .Button {
+    padding: 10px 15px 10px 15px;
+    margin: 0px;
     background-color: transparent;
-    border: none;
-    border-radius: 10px;
     color: white;
+    border: none;
+    border-radius: 15px;
     outline: none;
     cursor: pointer;
     font: inherit;
-    padding: 10px;
-    margin: 10px;
     font-weight: bold;
 }
 
-.Button:first-of-type {
-    margin-left: 0;
-    padding-left: 0;
+.Button:disabled {
+    background-color: rgb(223, 223, 223);
+    color: rgb(104, 104, 104);
+    cursor: not-allowed;
 }
 
-.Button:disabled {
-    color: #ccc;
+.Button:disabled:hover {
+    background-color: rgb(223, 223, 223);
+    color: rgb(104, 104, 104);
     cursor: not-allowed;
 }
 
@@ -31,4 +33,50 @@
 
 .Danger:hover {
     background-color: rgb(170, 149, 149);
+}
+
+.Login {
+    background-color: rgb(158, 27, 136);
+}
+
+.Login:hover {
+    background-color: rgb(158, 55, 141);
+}
+
+.Register {
+    background-color: rgb(135, 134, 182);
+}
+
+.Register:hover {
+    background-color: rgb(165, 165, 190);
+}
+
+.EditProfile {
+    background-color: rgb(251, 241, 230);
+    color: black;
+}
+
+.EditProfile:hover {
+    background-color: rgb(250, 234, 217);
+    color: rgb(41, 36, 36);
+}
+
+.CreateArtwork {
+    background-color: rgb(134, 52, 121);
+    color: white;
+}
+
+.CreateArtwork:hover {
+    background-color: rgb(145, 28, 125);
+    color: rgb(238, 231, 231);
+}
+
+.Follow {
+    background-color: rgb(141, 54, 90);
+    color: white;
+}
+
+.Follow:hover {
+    background-color: rgb(130, 44, 90);
+    color: rgb(238, 231, 231);
 }

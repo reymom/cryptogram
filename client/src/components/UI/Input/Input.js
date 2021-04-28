@@ -16,7 +16,7 @@ const input = ( props ) => {
                 className={inputClasses.join(' ')}
                 {...props.elementConfig}
                 value={props.value}
-                onChange={props.changed} />;
+                onChange={props.changed}/>;
             break;
         case ( 'textarea' ):
             inputElement = <textarea
@@ -33,11 +33,18 @@ const input = ( props ) => {
                     onChange={props.changed}>
                     {props.elementConfig.options.map(option => (
                         <option key={option.value} value={option.value}>
-                            {option.displayValue}
+                            { option.displayValue }
                         </option>
                     ))}
                 </select>
             );
+            break;
+        case ( 'repeatPassword' ):
+            inputElement = <input
+                className={inputClasses.join(' ')}
+                {...props.elementConfig}
+                value={props.value[0]}
+                onChange={props.changed} />;
             break;
         default:
             inputElement = <input

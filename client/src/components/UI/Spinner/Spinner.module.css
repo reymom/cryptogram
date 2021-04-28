@@ -1,7 +1,8 @@
 .Loading {
     text-align: center;
     padding: 15px;
-    margin: 15px;
+    margin: auto;
+    margin-top: 15px;
 }
 
 .Spinner {

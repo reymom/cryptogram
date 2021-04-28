@@ -1,3 +1,25 @@
 .Content {
     margin-top: 72px;
 }
+
+.ClaimRewardError {
+    width: 60%;
+    border: 1px solid rgb(221, 160, 160);
+    margin: auto;
+}
+
+.NoWeb3InfoBarContainer {
+    position: relative;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    height: 15px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    background-color: lightcoral;
+}
+
+.NoWeb3InfoBarContainer a {
+    text-decoration: none;
+}

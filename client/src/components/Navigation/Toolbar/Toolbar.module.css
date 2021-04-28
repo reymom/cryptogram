@@ -5,7 +5,7 @@
 }
 
 .Navigation {
-    background-color: #e0e0e0;
+    background-color: #fbf9f9;
     top: 0;
     left: 0;
     display: flex;
@@ -50,20 +50,25 @@
     cursor: pointer;
 }
 
+/* PROFILE NAVIGATION */
+.ProfileNavigationContainer {
+    margin: 0;
+    padding: 0;
+    z-index: 200;
+}
+
 .NavigationUl {
     padding: 0 10px;
     list-style: none;
+    display: flex;
 }
 
-.NavigationUl li {
-    display: inline;
-    /* height: 50px; */
-    padding: 0px;
-    margin: 5px;
+.NavigationUl:first-child {
+    padding: 10px;
 }
 
 .NavigationUl li:hover {
-    color:rgb(104, 0, 98)
+    color: rgb(104, 0, 98);
 }
 
 .NavigationUl li a {
@@ -77,5 +82,85 @@
 .NavigationUl li a:hover,
 .NavigationUl li a:active,
 .NavigationUl li a.active {
-    color: rgb(104, 0, 98);
+    background-color: rgb(228, 220, 220);
+}
+
+/* AUTH BUTTONS */
+.AuthContainer {
+    padding: 0 10px 0 0;
+    display: flex;
+    justify-content: space-between;
+    list-style: none;
+}
+
+.AuthContainer button {
+    margin: 0 5px 0 5px;
+}
+
+.AuthContainer a {
+    text-decoration: none;
+    font-size: 15px;
+    color: white;
+}
+
+.AuthContainer a:active,
+.AuthContainer a.active {
+    color: rgb(61, 61, 61);
+}
+
+/* NOTIFICATION BUTTON */
+.NotificationIcon {
+    cursor: pointer;
+}
+
+.ImageProfile {
+    cursor: pointer;
+}
+
+.ImageProfile img {
+    object-fit: cover;
+    width: 40px;
+    height: 40px;
+    border: 2px solid #d8b3b3;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+
+    background: linear-gradient(to right, rgb(114, 114, 126), rgb(95, 109, 126), rgb(165, 159, 206), rgb(123, 113, 187));
+}
+
+.DropdownProfile {
+    display: none;
+    position: absolute;
+    right: 1%;
+    background-color: #f9f9f9;
+    min-width: 150px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    padding: 12px 16px;
+    border-radius: 10px;
+    z-index: 1;
+}
+
+.ShowDropdown {
+    display: flex;
+    flex-direction: column;
+}
+
+.DropdownProfile a {
+    display: flex;
+    align-items: center;
+}
+
+.Hr {
+    width: 100%;
+    border: 0;
+    border-top: 1px solid rgb(230, 217, 217);
+    margin: 0;
+}
+
+.ConfigIcon {
+    margin-right: 10px;
+    align-items: center;
 }
