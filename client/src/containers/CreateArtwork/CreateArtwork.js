@@ -1,8 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-import * as actions from '../../store/actions';
 import classes from './CreateArtwork.module.css';
+import * as actions from '../../store/actions';
+import { checkValidity } from '../../shared/utility';
 
 import Aux from '../../hoc/Aux/Aux';
 import Button from '../../components/UI/Button/Button';
@@ -63,25 +64,6 @@ class CreateToken extends React.Component {
 
     componentDidMount() { this.props.onGetIPFS(); }
 
-    checkValidity(value, rules) {
-        let isValid = true;
-        if (!rules) { return true; }
-        if (rules.required) { isValid = value.trim() !== '' && isValid; }
-        if (rules.minLength) { isValid = value.length >= rules.minLength && isValid }
-        if (rules.maxLength) { isValid = value.length <= rules.maxLength && isValid }
-        if (rules.isFloat) {
-            const floatPattern = /^\d*(\.\d+)?$/;
-            isValid = floatPattern.test(value) && isValid
-        }
-        if (rules.isInteger) {
-            const integerPattern = /^\d+$/;
-            isValid = integerPattern.test(value) && isValid
-        }
-        if (rules.minNum) { isValid = value >= rules.minNum && isValid }
-        if (rules.maxNum) { isValid = value <= rules.maxNum && isValid }
-        return isValid;
-    }
-
     inputChangedHandler = (event, inputIdentifier) => {
         const updatedArtworkForm = {
             ...this.state.artworkForm
@@ -105,7 +87,7 @@ class CreateToken extends React.Component {
         }
         updatedFormElement.value = event.target.value;
         
-        updatedFormElement.valid = this.checkValidity(
+        updatedFormElement.valid = checkValidity(
             updatedFormElement.value,
             updatedFormElement.validation
         );

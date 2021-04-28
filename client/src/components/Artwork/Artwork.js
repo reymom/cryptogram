@@ -5,9 +5,9 @@ import Aux from '../../hoc/Aux/Aux';
 
 const artwork = ( props ) => {
 
-    if ( props.priceSpent > 0 ) {
-        console.log('priceSpent');
-    }
+    // if ( props.priceSpent > 0 ) {
+    //     console.log('priceSpent');
+    // }
 
     return (
         <Aux>

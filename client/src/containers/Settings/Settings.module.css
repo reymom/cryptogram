@@ -1,0 +1,60 @@
+.SettingsContainer {
+    width: 80%;
+    min-height: 800px;
+    margin: auto;
+    padding: 0;
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+}
+
+/* SIDEBAR */
+.SidebarContainer {
+    box-sizing: border-box;
+    border-right: 1px solid #ccc;
+}
+
+.SidebarContent {
+    list-style-type: none;
+    margin: 0;
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.SidebarContent li {
+    font-size: 15px;
+    height: 50px;
+    border-radius: 10px;
+    padding-left: 10px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.SidebarContent li:hover {
+    background-color: rgb(246, 246, 246);
+}
+
+.SidebarActiveLi {
+    background-color: rgb(246, 246, 246);
+}
+
+/* SETTINGS */
+.SettingsContentContainer {
+    padding-top: 5px;
+}
+
+.SettingsContentHeader {
+    border-bottom: 1px solid #ccc;
+    font-size: 20px;
+    padding: 10px;
+}
+
+.SettingsContent {
+    padding: 20px;
+}
+
+.SettingsContent button {
+    margin-bottom: 15px;
+}

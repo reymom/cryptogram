@@ -10,14 +10,9 @@ import Artwork from '../../components/Artwork/Artwork';
 
 class KanbanArtworks extends React.Component {
 
-    componentDidMount = async () => {
-        if (!this.props.balances 
-            || !this.props.artworks 
-            || this.props.address !== this.props.accounts[0] ) {
-            await this.props.onFetchAddressInfo(
-                this.props.contract.methods,
-                this.props.accounts[0]
-            );
+    componentDidMount () {
+        if ( this.props.page === 'home' && this.props.contract ) {
+            this.props.onFetchArtworks( this.props.contract.methods );
         }
     }
 
@@ -26,29 +21,68 @@ class KanbanArtworks extends React.Component {
     }
 
     render () {
-        let kanbanArtworks = <Spinner />;
-        if (!this.props.loadingAddress && this.props.artworks) {
-            kanbanArtworks = this.props.artworks.map((artwork, id) => (
-                <Artwork
-                    key={ id }
-                    imageSrc={ 'https://ipfs.io/ipfs/' + artwork.IPFShash }
-                    creationDate={ artwork.creationDate }
-                    lastPurchaseDate={ artwork.lastPurchaseDate }
-                    priceSpent={ artwork.priceSpent }
-                    description={ artwork.description }
-                    tag={ artwork.tag }
-                    initialPrice={ artwork.initialPrice }
-                    participationPercentage={ artwork.participationPercentage }
-                    totalLikes={ artwork.totalLikes }
-                    clicked={() => this.artworkSelectedHandler(id)} />
+
+        let kanbanArtworks = [<Spinner key={0}/>];
+        let artworks;
+        if (
+            this.props.page === 'home' && !this.props.fetchingArtworks && this.props.homeArtworks
+        ) {
+            artworks = this.props.homeArtworks;
+        } else if (
+            this.props.page === 'profile' &&  !this.props.loadingAddress && this.props.profileArtworks
+        ) {
+            artworks = this.props.profileArtworks;
+        }
+
+        if ( artworks ) {
+            console.log('homeArtworks = ', this.props.homeArtworks);
+            console.log('profileArtworks = ', this.props.profileArtworks);
+
+            kanbanArtworks = artworks.map(artwork => {
+                if (this.props.showMode) {
+                    if (this.props.showMode === 'creations') {
+                        if (artwork.creator !== this.props.userAddress) {
+                            return '';
+                        }
+                    } else if (this.props.showMode === 'purchases') {
+                        if (artwork.creator === this.props.userAddress) {
+                            return '';
+                        }
+                    }
+                }
+
+                return (
+                    <Artwork
+                        key={ artwork.id }
+                        imageSrc={ 'https://ipfs.io/ipfs/' + artwork.IPFShash }
+                        creationDate={ artwork.creationDate }
+                        lastPurchaseDate={ artwork.lastPurchaseDate }
+                        priceSpent={ artwork.priceSpent }
+                        description={ artwork.description }
+                        tag={ artwork.tag }
+                        initialPrice={ artwork.initialPrice }
+                        participationPercentage={ artwork.participationPercentage }
+                        totalLikes={ artwork.totalLikes }
+                        clicked={() => this.artworkSelectedHandler(artwork.id)} />
                 )
-            );
+            });
+        }
+
+        let kanbanReturned;
+        if (kanbanArtworks.join('') !== '') {
+            kanbanReturned = <div className={classes.KanbanContainer}>
+                { kanbanArtworks }
+            </div>
+        } else {
+            kanbanReturned = <div className={classes.EmptyKanban}>
+                0 artworks.
+            </div>
         }
 
         return (
-            <div className={classes.KanbanContainer}>
-                { kanbanArtworks }
-            </div>
+            <React.Fragment>
+                { kanbanReturned }
+            </React.Fragment>
         );
     };
 };
@@ -56,22 +90,20 @@ class KanbanArtworks extends React.Component {
 const mapStateToProps = state => {
     return {
         // web3 objects
-        web3: state.web3Objects.web3,
-        accounts: state.web3Objects.accounts,
         contract: state.web3Objects.contract,
-        loadingWeb3: state.web3Objects.loading,
-        // address info
-        address: state.web3Address.address,
-        balances: state.web3Address.balances,
-        artworks: state.web3Address.artworks,
-        listSupporters: state.web3Address.listSupporters,
-        loadingAddress: state.web3Address.loading
+        // web3 address
+        loadingAddress: state.web3Address.loading,
+        userAddress: state.web3Address.address,
+        profileArtworks: state.web3Address.artworks,
+        // artworks from address
+        fetchingArtworks: state.artwork.fetchingArtworks,
+        homeArtworks: state.artwork.artworks
     };
 };
 
 const mapDispatchToProps = dispatch => ({
-    onFetchAddressInfo: ( userAddress, methods ) => dispatch( 
-        actions.fetchAddressInfo(userAddress, methods)
+    onFetchArtworks: ( methods ) => dispatch( 
+        actions.fetchArtworks( methods )
     )
 });
 

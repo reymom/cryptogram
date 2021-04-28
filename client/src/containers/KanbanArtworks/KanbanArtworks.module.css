@@ -5,6 +5,14 @@
     grid-auto-flow: row dense;
 }
 
+.EmptyKanban {
+    margin-top: 20%;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 400;
+    color: rgb(100, 17, 35);
+}
+
 @media all and (min-width: 320px) {
     .KanbanContainer {
         grid-template-columns: repeat(1, 1fr);

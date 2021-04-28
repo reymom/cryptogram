@@ -7,33 +7,60 @@ import emptyProfilePic from '../../assets/persona.png';
 
 import Spinner from '../../components/UI/Spinner/Spinner';
 import Modal from '../../components/UI/Modal/Modal';
+import Button from '../../components/UI/Button/Button';
 import EditProfile from '../EditProfile/EditProfile';
 import CreateArtwork from '../CreateArtwork/CreateArtwork';
 import KanbanArtworks from '../KanbanArtworks/KanbanArtworks';
 
 class Profile extends React.Component {
-    state = { creatingArtwork: false, editingProfile: false }
+
+    state = {
+        showCreatedTokens: true,
+        showPurchasedTokens: false,
+        creatingArtwork: false, 
+        editingProfile: false
+    }
 
     componentDidMount = async () => {
-
-        if ( !this.props.web3 || !this.props.accounts || !this.props.contract ) {
+        // web3Objects
+        if ( !this.props.loadingWeb3 && (!this.props.web3 || !this.props.contract) ) {
             await this.props.onGetWeb3Objects();
         }
+        if (this.props.web3 && !this.props.loadingAccounts && !this.props.accounts) {
+            await this.props.onGetWeb3Accounts(this.props.web3);
+        }
 
-        let userId;
+        // profile info for fetching firebase
+        let userId = this.props.userId;
         let userAddress;
-        if (this.props.match.path === '/profile' && this.props.accounts) {
+        if ( this.props.match.path === '/profile' ) {
             userId = this.props.userId;
-            userAddress = this.props.accounts[1];
-        } else if (this.props.match.params.id) {
+            if ( this.props.accounts && this.props.accounts.length !== 0 ) {
+                userAddress = this.props.accounts[0];
+            }
+        } else if ( this.props.match.params.id ) {
+            // userId = 
             userAddress = this.props.match.params.id;
         }
-        await this.props.onFetchProfile(userId, this.props.idToken);
 
-        if ( this.props.contract && (!this.props.address | this.props.address !== userAddress)) {
+        // firebase
+        if ( 
+            (!this.props.loadingFirebase && !this.props.profileInfo) 
+            &&
+            (userId && this.props.idToken)
+        ) {
+            await this.props.onFetchProfile(userId, this.props.idToken);
+        }
+
+        // web3 address
+        if ( 
+            (this.props.web3 && !this.props.loadingAddress && this.props.contract) && 
+            (!this.props.artworks || this.props.address !== userAddress)
+        ) {
             await this.props.onFetchAddressInfo(
-                this.props.contract.methods,
-                userAddress
+                this.props.web3,
+                userAddress,
+                this.props.contract.methods
             );
         }
     }
@@ -44,6 +71,14 @@ class Profile extends React.Component {
             this.props.match.params.id, 
             this.props.idToken
         );
+    }
+
+    showKanbanHandler = ( kanbanMode ) => {
+        if ( kanbanMode === 'purchases' && !this.state.showPurchasedTokens ) {
+            this.setState({showCreatedTokens: false, showPurchasedTokens: true});
+        } else if ( kanbanMode === 'creations' && !this.state.showCreatedTokens ) {
+            this.setState({showCreatedTokens: true, showPurchasedTokens: false});
+        }
     }
 
     showModal = ( type ) => {
@@ -65,7 +100,7 @@ class Profile extends React.Component {
     render() {
         // MODALS
         let createArtworkForm;
-        if (this.props.web3 && this.props.contract) {
+        if ( this.props.web3 && this.props.contract && this.props.accounts ) {
             createArtworkForm = <CreateArtwork
                 clickCancel={this.hideModal}
                 clickSubmitNewArtwork={this.clickSubmitted}
@@ -73,7 +108,7 @@ class Profile extends React.Component {
         }
 
         let editProfileForm;
-        if (this.props.profileInfo) {
+        if ( this.props.profileInfo ) {
             editProfileForm = 
                 <EditProfile 
                     clickCancel={this.hideModal} 
@@ -86,36 +121,41 @@ class Profile extends React.Component {
 
         // EDIT BUTTONS
         let profileButtons;
-        if (this.props.accounts) {
-            if (!this.props.match.params.id || (this.props.match.params.id !== this.props.accounts[0])) {
+        if (
+            !this.props.match.params.id || 
+                (
+                    this.props.accounts && 
+                    ( this.props.match.params.id !== this.props.accounts[0] )
+                )
+            ) {
                 profileButtons =
                     <React.Fragment>
-                        <button 
-                            onClick={() => {this.showModal('Edit Profile')} }
-                            className={[classes.Button, classes.ProfileEditBtn].join(' ')}>
-                            Edit Profile
-                        </button>
-                        <button 
-                            onClick={() => {this.showModal('Create Artwork')} }
-                            className={[classes.Button, classes.CreateArtworkBtn].join(' ')}>
-                            Create Artwork
-                        </button>
+                        <Button 
+                            clicked={() => {this.showModal('Edit Profile')}}
+                            btnType="EditProfile">
+                                EDIT PROFILE
+                        </Button>
+                        <Button
+                            clicked={() => {this.showModal('Create Artwork')}}
+                            btnType="CreateArtwork"
+                            disabled={this.props.accounts.length === 0 ? false : true}>
+                                NEW ARTWORK
+                            </Button>
                     </React.Fragment>
-            } else {
-                profileButtons =
-                    <React.Fragment>
-                        <button 
-                            onClick={() => { this.followButtonHandler() }}
-                            className={[classes.Button, classes.FollowButton].join(' ')}>
-                            Follow
-                        </button>
-                    </React.Fragment>
-            }
+        } else {
+            profileButtons =
+                <React.Fragment>
+                    <Button 
+                        clicked={() => { this.followButtonHandler() } }
+                        btnType="Follow">
+                            FOLLOW
+                    </Button>
+                </React.Fragment>
         }
 
         // PROFILE SECTION
         let profileInfo;
-        if (!this.props.loadingFirebase && this.props.address) {
+        if ( !this.props.loadingFirebase ) {
             let imgClasses = [classes.ProfileImageContainer]
             let profileSrc = emptyProfilePic;
             if (this.props.profileInfo && this.props.profileInfo.imageSrc) {
@@ -173,28 +213,36 @@ class Profile extends React.Component {
                             }
                         </div>
                     </div>
-                    <div className={[classes.InfoWrapper, classes.RigthColumn].join(' ')}>
-                        Artworks
-                        <span className={classes.ProfileStatCount}>
-                            <b>{this.props.balances.tokenBalance}</b>
-                        </span>
-                        Created
-                        <span className={classes.ProfileStatCount}>
-                            <b>{this.props.balances.numTokensCreated}</b>
-                        </span>
-                        Bought
-                        <span className={classes.ProfileStatCount}>
-                            <b>{this.props.balances.numTokensBought}</b>
-                        </span>
-                    </div>
+                    {
+                        this.props.address ?
+                        <div className={[classes.InfoWrapper, classes.RigthColumn].join(' ')}>
+                            Artworks
+                            <span className={classes.ProfileStatCount}>
+                                <b>{this.props.balances.tokenBalance}</b>
+                            </span>
+                            Created
+                            <span className={classes.ProfileStatCount}>
+                                <b>{this.props.balances.numTokensCreated}</b>
+                            </span>
+                            Bought
+                            <span className={classes.ProfileStatCount}>
+                                <b>{this.props.balances.numTokensBought}</b>
+                            </span>
+                        </div> : ''
+                    }
                 </React.Fragment>
             )
         }
 
         // kanban
-        let kanbanArtworks = <Spinner />
-        if (!this.props.loading && this.props.web3 && this.props.contract) {
-            kanbanArtworks = <KanbanArtworks />;
+        let kanbanArtworks = <Spinner />;
+        kanbanArtworks = '';
+        if (
+            !this.props.loadingWeb3 && !this.props.loadingAddress && this.props.artworks
+        ) {
+            kanbanArtworks = <KanbanArtworks page='profile' showMode={
+                this.state.showCreatedTokens ? 'creations' : 'purchases'
+            }/>;
         }
 
         return (
@@ -206,6 +254,20 @@ class Profile extends React.Component {
                 </Modal>
                 <div className={classes.ProfileHeaderContainer}>
                     { profileInfo }
+                </div>
+                <div className={classes.KanbanModeContainer}>
+                    <ul className={classes.KanbanMode}>
+                        <li 
+                            className={this.state.showCreatedTokens ? classes.ActiveMode : ''}
+                            onClick={() => {this.showKanbanHandler('creations')}}>
+                            MY CREATIONS
+                        </li>
+                        <li 
+                            className={this.state.showPurchasedTokens ? classes.ActiveMode : ''}
+                            onClick={() => { this.showKanbanHandler('purchases')}}>
+                            MY COLLECTION
+                        </li>
+                    </ul>
                 </div>
                 <div className={classes.KanbanContainer}>
                     { kanbanArtworks }
@@ -220,28 +282,34 @@ const mapStateToProps = state => {
         // auth info
         userId: state.auth.userId,
         idToken: state.auth.idToken,
-        // web3 objects
+        // Web3Objects
+        // inject web3 and contract
         web3: state.web3Objects.web3,
-        accounts: state.web3Objects.accounts,
         contract: state.web3Objects.contract,
-        loadingWeb3: state.web3Objects.loading,
+        loadingWeb3: state.web3Objects.loadingWeb3,
+        errorWeb3: state.web3Objects.errorWeb3,
+        // get accounts
+        accounts: state.web3Objects.accounts,
+        loadingAccounts: state.web3Objects.loadingAccounts,
+        errorAccounts: state.web3Objects.errorAccounts,
         // address info
+        loadingAddress: state.web3Address.loading,
         address: state.web3Address.address,
         balances: state.web3Address.balances,
         artworks: state.web3Address.artworks,
         listSupporters: state.web3Address.listSupporters,
-        loadingAddress: state.web3Address.loading,
         // firebase
         loadingFirebase: state.firebaseProfile.loading,
-        errorFollow: state.firebaseProfile.errorFollow,
-        profileInfo: state.firebaseProfile.profileInfo
+        profileInfo: state.firebaseProfile.profileInfo,
+        errorFollow: state.firebaseProfile.errorFollow
     };
 };
 
 const mapDispatchToProps = dispatch => ({
     onGetWeb3Objects: () => dispatch( actions.getWeb3Objects() ),
-    onFetchAddressInfo: ( userAddress, methods ) => dispatch( 
-        actions.fetchAddressInfo(userAddress, methods)
+    onGetWeb3Accounts: (web3) => dispatch( actions.getWeb3Accounts(web3) ),
+    onFetchAddressInfo: ( web3, userAddress, methods ) => dispatch( 
+        actions.fetchAddressInfo(web3, userAddress, methods)
     ),
     onFetchProfile: ( userAddress, idToken ) => dispatch(
         actions.fetchProfile(userAddress, idToken)
