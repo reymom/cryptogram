@@ -3,47 +3,129 @@ import axiosProfile from '../../axios-profiles';
 
 import * as actionTypes from './actionTypes';
 
+import { getWeb3Objects } from './web3Objects';
+
 // REGISTER WALLET
 export const registerWalletStart = ( ) => {
     return { type: actionTypes.REGISTER_WALLET_START, };
 };
 
-export const registerWalletSuccess = ( ) => {
-    return { type: actionTypes.REGISTER_WALLET_SUCCESS, };
+export const registerWalletSuccess = ( userId, address ) => {
+    return { 
+        type: actionTypes.REGISTER_WALLET_SUCCESS, 
+        userId: userId,
+        address: address
+    };
 };
 
 export const registerWalletFail = ( error ) => {
     return { type: actionTypes.REGISTER_WALLET_FAIL, error: error, };
 };
 
-export const registerWallet = ( seeds, wallet, address, userId, idToken ) => {
+export const registerWallet = ( seeds, address, userId, idToken ) => {
     return dispatch => {
-        console.log('[registerWallet]');
+        // console.log('[registerWallet]');
         dispatch(registerWalletStart());
+        const publicPatch = axiosProfile.patch(
+            '/profile/' + userId + '/publicInfo.json?auth=' + idToken, 
+            { address: address }  
+        )
         const privatePatch = axiosProfile.patch(
             '/profile/' + userId + '/privateInfo.json?auth=' + idToken, 
-            { seeds: seeds, wallet: wallet }
+            { seeds: seeds }
         );
-        const mappingPatch = axiosProfile.patch(
-            '/usersAddresses/mapping.json?auth=' + idToken, 
-            { [address]: userId }
-        );
-        axios.all([privatePatch, mappingPatch]).then(axios.spread((...responses) => {
-            console.log('responsePrivate = ', responses[0]);
-            console.log('responseMapping = ', responses[1]);
-            dispatch(registerWalletSuccess());
+        axios.all([publicPatch, privatePatch]).then(axios.spread((...responses) => {
+            // console.log('response publicPatch = ', responses[0]);
+            // console.log('response privatePatch = ', responses[1]);
+            dispatch( registerWalletSuccess( userId, address ) );
         })).catch(errors => {
             console.log('errors = ', errors);
-            dispatch(registerWalletFail(errors));
+            dispatch( registerWalletFail( errors ) );
         })
     };
 };
 
+// FETCH GAS STATION
+export const fetchGasSuccess = ( gasStation ) => {
+    return {
+        type: actionTypes.FETCH_GAS_SUCCESS,
+        gasStation: gasStation
+    }
+}
+
+export const fetchGasFail = () => {
+    return { type: actionTypes.FETCH_GAS_FAIL }
+}
+
+export const fetchGas = ( idToken ) => {
+    return dispatch => {
+        axiosProfile.get( '/gasStation.json?auth=' + idToken)
+            .then( response => {
+                let gasStation = response.data;
+                dispatch( fetchGasSuccess( gasStation ) );
+            } )
+            .catch( error => {
+                console.log('error = ', error);
+                dispatch( fetchGasFail() );
+            } );
+    };
+}
+
+// FETCH ACTIVE USER DATA
+export const fetchActiveUserDataStart = ( ) => {
+    return { type: actionTypes.FETCH_ACTIVE_USER_DATA_START };
+}
+
+export const fetchActiveUserDataSuccess = ( userId, publicInfo, privateInfo ) => {
+    return {
+        type: actionTypes.FETCH_ACTIVE_USER_DATA_SUCCESS,
+        userId: userId,
+        publicInfo: publicInfo,
+        privateInfo: privateInfo
+    }
+}
+
+export const fetchActiveUserDataFail = ( error ) => {
+    return { type: actionTypes.FETCH_ACTIVE_USER_DATA_FAIL, error: error }
+}
+
+export const fetchActiveUserData = ( userId, idToken ) => {
+    return dispatch => {
+        dispatch( fetchActiveUserDataStart( userId ) );
+        dispatch( fetchGas(idToken) );
+        const getPubicData = axiosProfile.get(
+            '/profile/' + userId + '/publicInfo.json?auth=' + idToken
+        );
+        const getPrivateData = axiosProfile.get(
+            '/profile/' + userId + '/privateInfo.json?auth=' + idToken
+        );
+        axios.all([getPubicData, getPrivateData]).then(axios.spread((...responses) => {
+            // console.log('response getPubicData = ', responses[0]);
+            // console.log('response getPrivateData = ', responses[1]);
+            dispatch( fetchActiveUserDataSuccess( userId, responses[0].data, responses[1].data ) );
+            
+            let web3mode = 'custom';
+            if ( responses[1].data.myEthereum === 'browser' ) { web3mode = 'browser'; }
+            let seeds = responses[1].data.seeds;
+            dispatch( getWeb3Objects( web3mode, true, seeds ) );
+        })).catch(errors => {
+            console.log('errors = ', errors);
+            dispatch( fetchActiveUserDataFail( errors ) );
+        })
+    };
+}
+
+export const clearActiveUserData = () => {
+    return { type: actionTypes.CLEAR_ACTIVE_USER_DATA, }
+}
+
 // GET USERID FROM ADDRESS
-export const getUserIdFromAddressSuccess = ( userId, userAddress ) => {
+export const getUserIdFromAddressSuccess = ( userId, userName, imageSrc, userAddress ) => {
     return { 
         type: actionTypes.GET_USERID_FROM_ADDRESS_SUCCESS, 
         userId: userId,
+        userName: userName,
+        imageSrc: imageSrc,
         userAddress: userAddress
     };
 };
@@ -54,11 +136,17 @@ export const getUserIdFromAddressFail = ( error ) => {
 
 export const getUserIdFromAddress = ( userAddress, idToken ) => {
     return dispatch => {
-        const queryParams = '&equalTo="' + userAddress + '"';
-        axiosProfile.get( '/usersAddresses/mapping.json?auth=' + idToken + queryParams)
+        const queryParams = '&orderBy="publicInfo/address"&equalTo="' + userAddress.toLowerCase() + '"';
+        console.log('userAddress = ', userAddress);
+        axiosProfile.get( '/profile.json?auth=' + idToken + queryParams)
             .then( response => {
-                console.log('response.data = ', response.data);
-                dispatch( getUserIdFromAddressSuccess( response.data[userAddress], userAddress ) );
+                let userId = Object.keys(response.data)[0];
+                dispatch( getUserIdFromAddressSuccess( 
+                    userId, 
+                    response.data[userId].publicInfo.name,
+                    response.data[userId].publicInfo.imageSrc, 
+                    userAddress 
+                ) );
             } )
             .catch( error => {
                 console.log('error = ', error);
@@ -72,8 +160,12 @@ export const fetchProfileStart = () => {
     return { type: actionTypes.FETCH_PROFILE_START };
 };
 
-export const fetchProfileSuccess = ( profileInfo ) => {
-    return { type: actionTypes.FETCH_PROFILE_SUCCESS, profileInfo: profileInfo };
+export const fetchProfileSuccess = ( userId, profileInfo ) => {
+    return { 
+        type: actionTypes.FETCH_PROFILE_SUCCESS, 
+        userId: userId, 
+        profileInfo: profileInfo 
+    };
 };
 
 export const fetchProfileFail = ( error ) => {
@@ -89,7 +181,7 @@ export const fetchProfile = ( userId, idToken ) => {
                 for ( let key in response.data ) {
                     fetchedProfile.key = response.data[key];
                 }
-                dispatch( fetchProfileSuccess( response.data ) );
+                dispatch( fetchProfileSuccess( userId, response.data ) );
             } )
             .catch( error => {
                 dispatch( fetchProfileFail( error ) );
@@ -119,8 +211,11 @@ export const editProfile = ( fromUserId, idToken, data ) => {
             .then( response => {
                 console.log('response = ', response);
                 dispatch( editProfileSuccess( ) );
+                // refetch changes
+                dispatch( fetchActiveUserData( fromUserId, idToken ) );
             } )
             .catch( errorEdit => {
+                console.log('errorEdit = ', errorEdit);
                 dispatch( editProfileFail( errorEdit ) );
             } );
     };
@@ -131,36 +226,56 @@ export const followUserStart = () => {
     return { type: actionTypes.FOLLOW_USER_START };
 };
 
-export const followUserSuccess = () => {
-    return { type: actionTypes.FOLLOW_USER_SUCCESS };
+export const followUserSuccess = ( unfollow, newFollow, newFollower ) => {
+    return { 
+        type: actionTypes.FOLLOW_USER_SUCCESS, 
+        unfollow: unfollow, 
+        newFollow: newFollow,
+        newFollower: newFollower
+    };
 };
 
 export const followUserFail = ( errorFollow ) => {
     return { type: actionTypes.FOLLOW_USER_FAIL, errorFollow: errorFollow };
 };
 
-export const followUser = ( fromUserId, toUserAddress, idToken ) => {
+export const followUser = ( fromUserId, fromAddress, toUserId, toAddress, idToken, unfollow ) => {
     return dispatch => {
         dispatch( followUserStart() );
-        // add followed in follower
-        axiosProfile.patch( '/profile/' + fromUserId + '/publicInfo/following.json?auth=' + idToken, 
-            {[toUserAddress]: true}
-        )
-            .then( followingResponse => {
-                console.log('followingResponse = ', followingResponse);
-                // add follower in followed
-                axiosProfile.patch( '/profile/' + toUserAddress + '/publicInfo/followers.json?auth=' + idToken,
-                    {[fromUserId]: true}
-                ).then( followerResponse => {
-                    dispatch( followUserSuccess( ) );
-                    console.log('followerResponse = ', followerResponse);
-                })
-                .catch( followerError => {
-                    dispatch( followUserFail( followerError ) );
-                })
-            } )
-            .catch( errorFollow => {
-                dispatch( followUserFail( errorFollow ) );
-            } );
+
+        if ( !unfollow ) {
+            const axiosFollower = axiosProfile.patch(
+                '/profile/' + fromUserId + '/publicInfo/following.json?auth=' + idToken, 
+                {[toUserId]: toAddress}
+            );
+            const axiosFollowed = axiosProfile.patch( 
+                '/profile/' + toUserId + '/publicInfo/followers.json?auth=' + idToken,
+                { [fromUserId]: fromAddress }
+            );
+
+            axios.all([axiosFollower, axiosFollowed]).then(axios.spread((...responses) => {
+                dispatch( followUserSuccess( unfollow, {[toUserId]: toAddress}, { [fromUserId]: fromAddress } ) );
+            })).catch(errors => {
+                console.log('errors = ', errors);
+                dispatch( followUserFail( errors ) );
+            });
+        }  else if ( unfollow ) {
+            const axiosFollower = axiosProfile.delete( 
+                '/profile/' + fromUserId + '/publicInfo/following/' + toUserId + '.json?auth=' + idToken 
+            );
+            const axiosFollowed = axiosProfile.delete( 
+                '/profile/' + toUserId + '/publicInfo/followers/' + fromUserId + '.json?auth=' + idToken 
+            );
+
+            axios.all([axiosFollower, axiosFollowed]).then(axios.spread((...responses) => {
+                console.log('response[0] = ', responses[0]);
+                console.log('response[1] = ', responses[1]);
+                dispatch( followUserSuccess( unfollow, toUserId, fromUserId ) );
+            })).catch(errors => {
+                console.log('errors = ', errors);
+                dispatch( followUserFail( errors ) );
+            });
+        }
+
     };
 };

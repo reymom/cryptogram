@@ -1,16 +1,30 @@
 export {
+    auth,
+    logout,
+    setAuthRedirectPath,
+    authCheckState
+} from './auth';
+export {
+    fetchActiveUserData,
+    getUserIdFromAddress,
+    fetchProfile,
+    editProfile,
+    followUser
+} from './firebaseProfile';
+export {
     getWeb3Objects,
-    getWeb3Accounts,
-    createAccount
+    getAccountsFromBrowser,
+    getAddressFromSeed
 } from './web3Objects';
 export {
     fetchAddressInfo,
-    fetchAvailableFunds,
     getBalance,
+    fetchAvailableFunds,
     claimRewards
 } from './web3Address';
 export {
     fetchArtworks,
+    fetchArtwork,
     createArtwork,
     supportArtwork,
     clearSupportState,
@@ -22,17 +36,5 @@ export {
     setEventVisited
 } from './contractEvents';
 export {
-    getUserIdFromAddress,
-    fetchProfile,
-    editProfile,
-    followUser
-} from './firebaseProfile';
-export {
     getIPFS
 } from './IPFS';
-export {
-    auth,
-    logout,
-    setAuthRedirectPath,
-    authCheckState
-} from './auth';

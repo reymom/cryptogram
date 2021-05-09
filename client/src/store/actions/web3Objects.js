@@ -9,113 +9,159 @@ import { registerWallet } from './firebaseProfile';
 
 import Artworks from '../../artifacts/Artworks.json';
 
-// web3 injection and get contract
-export const getWeb3ObjectsStart = () => {
-    return { type: actionTypes.GET_WEB3OBJECTS_START, };
+export const clearWeb3ObjectsState = () => {
+    return { type: actionTypes.CLEAR_WEB3OBJECTS_STATE, };
 };
 
-export const getWeb3ObjectsSuccess = ( web3, contract ) => {
-    return {
-        type: actionTypes.GET_WEB3OBJECTS_SUCCESS,
-        web3: web3,
-        contract: contract
-    };
+// WEB3 INJECTION
+export const injectWeb3Start = () => {
+    return { type: actionTypes.INJECT_WEB3_START, };
 };
 
-export const getWeb3ObjectsFail = ( error ) => {
-    return { type: actionTypes.GET_WEB3OBJECTS_FAIL, error: error };
+export const injectWeb3Success = ( web3, web3mode ) => {
+    return { type: actionTypes.INJECT_WEB3_SUCCESS, web3: web3, web3mode: web3mode };
 };
 
-export const getWeb3Objects = ( ) => {
+export const injectWeb3Fail = ( error ) => {
+    return { type: actionTypes.INJECT_WEB3_FAIL, error: error };
+};
+
+// DISPATCH WEB3 INJECTION AND LATER CONTRACT AND ADDRESSES
+export const getWeb3Objects = ( web3mode, getAccounts, seeds ) => {
     return async (dispatch) => {
-        dispatch( getWeb3ObjectsStart() );
+        // console.log('[getWeb3Objects]');
+        dispatch( injectWeb3Start( ) );
         try {
-            // console.log('getting web3 objects');
-            const web3 = await getWeb3('infura');
-            console.log('web3 :)');
-            const networkId = await web3.eth.net.getId();
-            console.log('networkId = ', networkId);
-            const deployedNetwork = Artworks.networks[networkId];
-            console.log('deployedNetwork = ', deployedNetwork);
-            // const contract = new web3.eth.Contract(
-            //     Artworks.abi,
-            //     deployedNetwork && deployedNetwork.address,
-            // );
-            const contract = { name: 'temporalmente vacío' };
-            console.log('contract = ', contract);
-            dispatch(getWeb3ObjectsSuccess(web3, contract));
+
+            const web3 = await getWeb3( web3mode );
+            dispatch( injectWeb3Success( web3, web3mode ) );
+            dispatch( loadContract( web3 ) );
+
+            if ( getAccounts ) {
+                if ( web3mode === 'custom' ) {
+                    dispatch( getAddressFromSeed(seeds, false, null, null) );
+                } else if ( web3mode === 'browser' ) {
+                    dispatch( getAccountsFromBrowser( web3 ) );
+                }
+            }
+
         } catch (error) {
             console.log('error = ', error);
-            dispatch( getWeb3ObjectsFail( error ) );
+            dispatch( injectWeb3Fail( error ) );
         }
-    };
+    }
+}
+
+// LOAD CONTRACT
+export const loadContractStart = () => {
+    return { type: actionTypes.LOAD_CONTRACT_START, };
 };
 
-// get accounts
-export const getWeb3AccountsStart = () => {
-    return { type: actionTypes.GET_WEB3ACCOUNTS_START, };
+export const loadContractSuccess = ( contract ) => {
+    return { type: actionTypes.LOAD_CONTRACT_SUCCESS, contract: contract };
 };
 
-export const getWeb3AccountsSuccess = ( accounts ) => {
-    return { type: actionTypes.GET_WEB3ACCOUNTS_SUCCESS, accounts: accounts, };
+export const loadContractFail = ( error ) => {
+    return { type: actionTypes.LOAD_CONTRACT_FAIL, error: error };
 };
 
-export const getWeb3AccountsFail = ( error ) => {
-    return { type: actionTypes.GET_WEB3ACCOUNTS_FAIL, error: error };
-};
-
-export const getWeb3Accounts = ( web3 ) => {
+export const loadContract = ( web3 ) => {
     return async (dispatch) => {
-        dispatch( getWeb3AccountsStart() );
+        // console.log('[loadContract]');
+        dispatch( loadContractStart() );
+        try {
+            const networkId = await web3.eth.net.getId();
+            // console.log('networkId = ', networkId);
+            const deployedNetwork = Artworks.networks[networkId];
+            // console.log('deployedNetwork = ', deployedNetwork);
+            const contract = new web3.eth.Contract(
+                Artworks.abi,
+                deployedNetwork && deployedNetwork.address,
+            );
+            // console.log('contract = ', contract);
+            dispatch( loadContractSuccess(contract) );
+        } catch (error) {
+            dispatch( loadContractFail(error) );
+        }
+
+    }
+}
+
+// GET ACCOUNTS FROM BROWSER (METAMASK OR EQUIVALENT)
+export const getAccountsFromBrowserStart = () => {
+    return { type: actionTypes.GET_ACCOUNTS_FROM_BROWSER_START, web3Mode: 'browser' };
+};
+
+export const getAccountsFromBrowserSuccess = ( accounts ) => {
+    return { type: actionTypes.GET_ACCOUNTS_FROM_BROWSER_SUCCESS, accounts: accounts, };
+};
+
+export const getAccountsFromBrowserFail = ( error ) => {
+    return { type: actionTypes.GET_ACCOUNTS_FROM_BROWSER_FAIL, error: error };
+};
+
+export const getAccountsFromBrowser = ( web3 ) => {
+    return async (dispatch) => {
+        dispatch( getAccountsFromBrowserStart() );
         try {
             const accounts = await web3.eth.getAccounts();
-            console.log('accounts = ', accounts);
-            dispatch( getWeb3AccountsSuccess( accounts ) );
+            // console.log('accounts = ', accounts);
+            dispatch( getAccountsFromBrowserSuccess( accounts ) );
         } catch (error) {
-            console.log('error = ', error);
-            dispatch( getWeb3AccountsFail( error ) );
+            // console.log('error = ', error);
+            dispatch( getAccountsFromBrowserFail( error ) );
         }
     };
 };
 
-// web3 account creation
-export const createAccountStart = () => {
-    return { type: actionTypes.CREATE_ACCOUNT_START, };
+// GET ADDRESS FROM SEED AND REGISTER IF NEEDED
+export const getAddressFromSeedStart = () => {
+    return { type: actionTypes.GET_ADDRESS_FROM_SEED_START, web3Mode: 'custom' };
 };
 
-export const createAccountSuccess = ( seeds, wallet, account ) => {
+export const getAddressFromSeedSuccess = ( seeds, wallet, address ) => {
     return { 
-        type: actionTypes.CREATE_ACCOUNT_SUCCESS,
+        type: actionTypes.GET_ADDRESS_FROM_SEED_SUCCESS,
         seeds: seeds,
         wallet: wallet, 
-        account: account 
+        address: address 
     };
 };
 
-export const createAccountFail = ( error ) => {
-    return { type: actionTypes.CREATE_ACCOUNT_FAIL, error: error };
+export const getAddressFromSeedFail = ( error ) => {
+    return { type: actionTypes.GET_ADDRESS_FROM_SEED_FAIL, error: error };
 };
 
-export const createAccount = ( userId, idToken ) => {
+export const getAddressFromSeed = ( seeds, firebaseRegister, userId, idToken ) => {
     return async(dispatch) => {
-        dispatch( createAccountStart() );
-        console.log('[createAccount]');
+        dispatch( getAddressFromSeedStart() );
+        // console.log('[getAddressFromSeed]');
         try {
-            const seeds = (new Mnemonic(Mnemonic.Words.ENGLISH)).toString();
-            const mnemonic = new Mnemonic(seeds);
+            let seedPhrase = seeds;
+            if ( !seeds ) {
+                seedPhrase = (new Mnemonic(Mnemonic.Words.ENGLISH)).toString();
+            }
+            const mnemonic = new Mnemonic(seedPhrase);
             bip39.mnemonicToSeed(mnemonic.toString()).then(async seed => {
                 var path = "m/44'/60'/0'/0/0";
                 var wallet = hdkey.fromMasterSeed(seed).derivePath(path).getWallet();
                 var privateKey = wallet.getPrivateKey();
                 var publicKey = util.privateToPublic(privateKey);
                 var address = '0x' + util.pubToAddress(publicKey).toString('hex');
-                console.log('wallet, address = ', wallet, address);
-                dispatch( createAccountSuccess( seeds, wallet, address ) );
-                dispatch( registerWallet( seeds, wallet, address, userId, idToken ) );
+
+                // console.log('seedPhrase = ', seedPhrase);
+                // console.log('wallet = ', wallet);
+                // console.log('address = ', address);
+
+                dispatch( getAddressFromSeedSuccess( seedPhrase, wallet, address ) );
+
+                if ( firebaseRegister ) {
+                    dispatch( registerWallet( seedPhrase, address, userId, idToken ) );
+                }
             });
         } catch (error) {
             console.log('error = ', error);
-            dispatch(createAccountFail( error ));
+            dispatch( getAddressFromSeedFail( error ) );
         }
     };
 };

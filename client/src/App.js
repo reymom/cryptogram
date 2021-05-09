@@ -14,10 +14,44 @@ import Settings from './containers/Settings/Settings';
 import LoadedArtwork from './containers/LoadedArtwork/LoadedArtwork';
 
 class App extends React.Component {
-    componentDidMount() { this.props.onTryAutoSignup(); }
+    componentDidMount() { 
+        // AUTHENTICATE, then automatically: get web3, contract, accounts
+        this.props.onTryAutoSignup(); 
+    }
+
+    componentDidUpdate( prevProps ) {
+        console.log('[componentDidUpdate] App.js');
+        // ACCOUNT INFO
+        if ( 
+            this.props.isAuthenticated && !prevProps.contract &&
+            this.props.web3mode && this.props.web3 && this.props.contract
+        ) {
+            let account;
+            if (this.props.web3mode === 'browser' && this.props.accountsActive) {
+                account = this.props.accountsActive[0];
+            } else if (this.props.web3mode === 'custom' && this.props.addressActive) {
+                account = this.props.addressActive;
+            }
+
+            console.log('this.props.addressActive = ', account);
+
+            if ( account ) {
+                this.props.onFetchAddressActiveInfo(
+                    this.props.web3,
+                    account,
+                    this.props.contract.methods
+                )
+                this.props.onFetchAvailableFunds(
+                    account,
+                    this.props.web3,
+                    this.props.contract.methods
+                )
+            }
+        }
+    } 
 
     render() {
-        console.log('[App.js][render] isAuthenticated = ', this.props.isAuthenticated);
+        // console.log('[App.js][render] isAuthenticated = ', this.props.isAuthenticated);
 
         let routes = (
             <Switch>
@@ -28,7 +62,7 @@ class App extends React.Component {
             </Switch>
         );
 
-        if ( this.props.isAuthenticated ) {
+        if ( this.props.isAuthenticated && this.props.web3 ) {
             routes = (
                 <Switch>
                     <Redirect from="/" to="/home" exact />
@@ -70,11 +104,32 @@ class App extends React.Component {
 }
 
 const mapStateToProps = state => {
-    return { isAuthenticated: state.auth.idToken !== null };
+    return { 
+        isAuthenticated: state.auth.idToken !== null,
+        /************/
+        /*   WEB3   */
+        /************/
+        web3mode: state.web3Objects.web3mode, 
+        web3: state.web3Objects.web3,
+        contract: state.web3Objects.contract,
+        accountsActive: state.web3Objects.accounts,
+        addressActive: state.web3Objects.address,
+    };
 };
 
 const mapDispatchToProps = dispatch => {
-    return { onTryAutoSignup: () => dispatch(actions.authCheckState()) };
+    return {
+        // AUTHENTICATE, then automatically: get web3, contract, accounts
+        onTryAutoSignup: ( ) => dispatch( actions.authCheckState() ),
+        // THEN ACCOUNT INFO
+        onFetchAddressActiveInfo: ( web3, userAddress, methods ) => dispatch(
+            actions.fetchAddressInfo(web3, userAddress, methods, true)
+        ),
+        onFetchAvailableFunds: ( userAddress, web3, methods ) => dispatch(
+            actions.fetchAvailableFunds(userAddress, web3, methods)
+        )
+
+    };
 };
 
 export default withRouter( connect( mapStateToProps, mapDispatchToProps )(App) );

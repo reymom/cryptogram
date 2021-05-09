@@ -72,7 +72,7 @@ export const checkValidity = (value, rules) => {
     if (rules.maxNum) { isValid = value <= rules.maxNum && isValid }
     if (rules.matchPassword) { isValid = value[0] === value[1] && isValid }
     if (rules.isSeed) {
-        isValid = value.trim().split(/\s+/g).length >= 12 && isValid
+        isValid = value.trim().split(/\s+/g).length >= 12 && isValid;
     }
     return isValid;
 }

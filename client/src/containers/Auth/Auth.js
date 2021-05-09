@@ -78,6 +78,14 @@ class Auth extends React.Component {
                 valid: true,
                 touched: true
             },
+            seeds: {
+                elementType: 'input',
+                elementConfig: { type: 'textarea', placeholder: 'Your seeds' },
+                value: '',
+                validation: { required: false, isSeed: true },
+                valid: false,
+                touched: false
+            },
         },
         isLogin: true
     }
@@ -100,21 +108,24 @@ class Auth extends React.Component {
                 repeatPassword: {
                     ...prevState.controls.repeatPassword,
                     validation: { 
+                        ...prevState.controls.repeatPassword.validation,
                         matchPassword: !prevState.controls.repeatPassword.validation.matchPassword
                     }
                 },
                 name: {
                     ...prevState.controls.name,
                     validation: { 
+                        ...prevState.controls.name.validation,
                         required: !prevState.controls.name.validation.required, 
                     }
                 },
                 myEthereum: {
                     ...prevState.controls.myEthereum,
                     validation: { 
+                        ...prevState.controls.myEthereum.validation,
                         required: !prevState.controls.myEthereum.validation.required, 
                     }
-                }
+                },
             }
         }));
     }
@@ -142,15 +153,48 @@ class Auth extends React.Component {
             } )
         } );
 
-        this.setState( { controls: updatedControls } );
+        if ( controlName === 'myEthereum' && event.target.value === 'seed' ) {
+            this.setState( { 
+                controls: { 
+                    ...updatedControls,
+                    seeds: {
+                        ...updatedControls.seeds,
+                        validation: {
+                            ...updatedControls.seeds.validation,
+                            required: true
+                        },
+                    }
+                }
+            } );
+        } else if ( controlName === 'myEthereum' && event.target.value !== 'seed' ) {
+            this.setState( { 
+                controls: { 
+                    ...updatedControls,
+                    seeds: {
+                        ...updatedControls.seeds,
+                        value: '',
+                        validation: {
+                            ...updatedControls.seeds.validation,
+                            required: false
+                        }
+                    }
+                }
+            } );
+        }
+        else {
+            this.setState( { controls: updatedControls } );
+        }
     }
 
     submitHandler = ( event ) => {
         event.preventDefault();
 
         let myEthereum = 'custom';
+        let seeds = '';
         if ( this.state.controls.myEthereum.value === 'browserInjection') {
             myEthereum = 'browserInjection';
+        } else if ( this.state.controls.myEthereum.value === 'seed' ) {
+            seeds = this.state.controls.seeds.value;
         }
 
         this.props.onAuth(
@@ -158,19 +202,23 @@ class Auth extends React.Component {
             this.state.controls.password.value,
             this.state.isLogin,
             this.state.controls.name.value,
-            myEthereum
+            myEthereum,
+            seeds
         );
     }
 
     render () {
         const formElementsArray = [];
         for ( let key in this.state.controls ) {
-            if (key !== 'repeatPassword' && key !== 'name' && key !== 'myEthereum') {
+            if (key !== 'repeatPassword' && key !== 'name' && key !== 'myEthereum' && key !== 'seeds') {
                 formElementsArray.push( {
                     id: key,
                     config: this.state.controls[key]
                 } )
-            } else if ( !this.state.isLogin ) {
+            } else if ( 
+                !this.state.isLogin && ( key !== 'seeds' ||
+                (key === 'seeds' && this.state.controls['myEthereum'].value === 'seed') )
+            ) {
                 formElementsArray.push( {
                     id: key,
                     config: this.state.controls[key]
@@ -279,13 +327,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
     return {
-        onAuth: ( email, password, isLogin, name, myEthereum ) => dispatch(
-            actions.auth(email, password, isLogin, name, myEthereum)
+        onAuth: ( email, password, isLogin, name, myEthereum, seeds ) => dispatch(
+            actions.auth(email, password, isLogin, name, myEthereum, seeds)
         ),
         onSetAuthRedirectPath: ( url ) => dispatch(actions.setAuthRedirectPath(url)),
-        onCreateAccount: ( userId, idToken ) => dispatch(
-            actions.createAccount( userId, idToken )
-        )
     };
 };
 

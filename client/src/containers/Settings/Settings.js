@@ -15,12 +15,12 @@ class Settings extends React.Component {
     }
 
     componentDidMount = async () => {
-        if ( 
-            (!this.props.loadingFirebase && !this.props.profileInfo) 
-            && (this.props.userId && this.props.idToken)
-        ) {
-            await this.props.onFetchProfile(this.props.userId, this.props.idToken);
-        }
+        // if ( 
+        //     (!this.props.loadingFirebase && !this.props.profileInfo) 
+        //     && (this.props.userId && this.props.idToken)
+        // ) {
+        //     await this.props.onFetchProfile(this.props.userId, this.props.idToken);
+        // }
     }
 
     sidebarOptionClickedHandler = (sidebarOption) => {
@@ -142,10 +142,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => ({
     onGetWeb3Objects: () => dispatch( actions.getWeb3Objects() ),
-    onGetWeb3Accounts: ( web3 ) => dispatch( actions.getWeb3Accounts(web3) ),
-    onFetchProfile: ( userAddress, idToken ) => dispatch(
-        actions.fetchProfile(userAddress, idToken)
-    ),
+    onGetAccountsFromBrowser: ( web3 ) => dispatch( actions.getAccountsFromBrowser(web3) ),
+    // onFetchProfile: ( userAddress, idToken ) => dispatch(
+    //     actions.fetchProfile(userAddress, idToken)
+    // ),
 })
 
 export default connect( mapStateToProps, mapDispatchToProps )(Settings);

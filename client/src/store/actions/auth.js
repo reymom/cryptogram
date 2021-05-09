@@ -3,47 +3,57 @@ import axiosProfile from '../../axios-profiles';
 
 import * as actionTypes from './actionTypes';
 
-import { createAccount } from './web3Objects';
+import { 
+    clearActiveUserData, 
+    fetchActiveUserData
+} from './firebaseProfile';
+import { 
+    clearWeb3ObjectsState,
+    getWeb3Objects, 
+    getAddressFromSeed 
+} from './web3Objects';
+import { clearWeb3AddressData } from './web3Address';
+import { clearEventsData } from "./contractEvents";
 
-export const authStart = () => {
-    return {
-        type: actionTypes.AUTH_START
+// CHECK TIMEOUT
+export const checkAuthTimeout = (expirationTime) => {
+    return dispatch => {
+        setTimeout(() => { dispatch(logout()); }, expirationTime*1000);
     };
+};
+
+// AUTH
+export const authStart = ( ) => {
+    return { type: actionTypes.AUTH_START };
 };
 
 export const authSuccess = ( idToken, userId ) => {
-    return {
-        type: actionTypes.AUTH_SUCCESS,
-        idToken: idToken,
-        userId: userId
-    };
+    return { type: actionTypes.AUTH_SUCCESS, idToken: idToken, userId: userId };
 };
 
-export const authFail = (error) => {
-    return {
-        type: actionTypes.AUTH_FAIL,
-        error: error
-    };
+export const authFail = ( error ) => {
+    return { type: actionTypes.AUTH_FAIL, error: error };
 };
 
-export const logout = () => {
+export const firebaseLogout = () => {
     localStorage.removeItem('idToken');
     localStorage.removeItem('expirationDate');
     localStorage.removeItem('userId');
-    return {
-        type: actionTypes.AUTH_LOGOUT
-    };
-};
+    return { type: actionTypes.AUTH_LOGOUT };
+}
 
-export const checkAuthTimeout = (expirationTime) => {
+export const logout = () => {
     return dispatch => {
-        setTimeout(() => {
-            dispatch(logout());
-        }, expirationTime*1000);
-    };
+        dispatch( firebaseLogout() );
+        dispatch( clearActiveUserData() );
+        dispatch( clearWeb3ObjectsState() );
+        dispatch( clearWeb3AddressData() );
+        dispatch( clearEventsData() );
+    }
 };
 
-export const auth = ( email, password, isLogin, name, myEthereum ) => {
+
+export const auth = ( email, password, isLogin, name, myEthereum, seeds ) => {
     return dispatch => {
         dispatch( authStart() );
         const authData = {
@@ -55,7 +65,7 @@ export const auth = ( email, password, isLogin, name, myEthereum ) => {
         if ( isLogin ) {
             endpoint = 'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=';
         }
-        
+ 
         axios.post(endpoint + process.env.REACT_APP_FIREBASE_API_KEY, authData)
             .then(response => {
                 const userId = response.data.localId;
@@ -67,8 +77,6 @@ export const auth = ( email, password, isLogin, name, myEthereum ) => {
 
                 // Register name if new user
                 if ( !isLogin ) {
-                    console.log('name = ', name, 'myEthereum = ', myEthereum);
-
                     const publicPut = axiosProfile.put( '/profile/' + userId + '/publicInfo.json?auth=' + idToken, 
                         { name: name }
                     );
@@ -78,18 +86,22 @@ export const auth = ( email, password, isLogin, name, myEthereum ) => {
                     axios.all([publicPut, privatePut]).then(axios.spread((...responses) => {
                         console.log('responsePublic = ', responses[0]);
                         console.log('responsePrivate = ', responses[1]);
+                        if (myEthereum === 'custom') {
+                            dispatch( getAddressFromSeed( seeds, true, userId, idToken ) );
+                            dispatch( getWeb3Objects('custom', false, '') );
+                        }
                     })).catch(errors => {
                         console.log('errors = ', errors);
                     })
-
-                    dispatch( createAccount( userId, idToken ) );
+                } else if ( isLogin ) {
+                    dispatch( fetchActiveUserData( userId, idToken ) );
                 }
-                
-                dispatch(authSuccess( idToken, userId ));
-                dispatch(checkAuthTimeout( response.data.expiresIn ));
+
+                dispatch( authSuccess( idToken, userId ) );
+                dispatch( checkAuthTimeout( response.data.expiresIn ) );
             })
             .catch(error => {
-                dispatch(authFail( error.response.data.error ));
+                dispatch( authFail( error.response.data.error ) );
             });
     };
 };
@@ -111,6 +123,7 @@ export const authCheckState = () => {
                 const userId = localStorage.getItem('userId');
                 dispatch(authSuccess(idToken, userId));
                 dispatch(checkAuthTimeout((expirationDate.getTime() - new Date().getTime()) / 1000 ));
+                dispatch( fetchActiveUserData( userId, idToken ) );
             }   
         }
     };

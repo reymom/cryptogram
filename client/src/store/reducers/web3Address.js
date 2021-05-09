@@ -2,96 +2,138 @@ import * as actionTypes from '../actions/actionTypes';
 import { updateObject } from '../../shared/utility';
 
 const initialState = {
+    // ACTIVE USER INFO
+    addressActive: null,
+    balancesActive: null,
+    artworksActive: null,
+    fetchingInfoActive: false,
+    // EXTERNAL USER INFO
     address: '',
-    // balances
     balances: null,
     artworks: null,
-    loading: false,
-    // funds
+    fetchingInfo: false,
+    // AVAILABLE FUNDS (ACTIVE USER)
     availableFunds: null,
-    processingGetFunds: false,
-    errorGetFunds: null
+    gettingAvailableFunds: false,
+    claimingFunds: false,
+    errorClaimFunds: null
 }
 
-// address info
-const fetchAddressInfoStart = ( state, ) => {
-    return updateObject( state, { loading: true } );
+const clearWeb3AddressData = (state, ) => {
+    return updateObject( state, initialState );
+};
+
+// USER INFO
+const fetchAddressInfoStart = ( state, action ) => {
+    let object;
+    if ( action.isActiveUser ) { 
+        object = { fetchingInfoActive: true };
+    } else {
+        object = { fetchingInfo: true };
+    }
+    return updateObject( state, object );
 };
 
 const fetchAddressInfoSuccess = ( state, action ) => {
-    return updateObject( state, {
-        address: action.address,
-        balances: {
-            ethBalance: action.ethBalance,
-            tokenBalance: action.tokenBalance,
-            numTokensCreated: action.numTokensCreated,
-            numTokensBought: action.numTokensBought,
-        },
-        artworks: action.artworks,
-        loading: false
-    } );
+    let object;
+    if ( action.isActiveUser ) {
+        object = {
+            addressActive: action.address,
+            balancesActive: {
+                ethBalance: action.ethBalance,
+                tokenBalance: action.tokenBalance,
+                numTokensCreated: action.numTokensCreated,
+                numTokensBought: action.numTokensBought,
+            },
+            artworksActive: action.artworks,
+            fetchingInfoActive: false
+        };
+    } else {
+        object = {
+            address: action.address,
+            balances: {
+                ethBalance: action.ethBalance,
+                tokenBalance: action.tokenBalance,
+                numTokensCreated: action.numTokensCreated,
+                numTokensBought: action.numTokensBought,
+            },
+            artworks: action.artworks,
+            fetchingInfo: false
+        };
+    }
+
+    return updateObject( state, object );
 };
 
-const fetchAddressInfoFail = ( state, ) => {
-    return updateObject( state, { loading: false } );
+const fetchAddressInfoFail = ( state, action ) => {
+    let object;
+    if ( action.isActiveUser ) { 
+        object = { fetchingInfoActive: false };
+    } else {
+        object = { fetchingInfo: false };
+    }
+    return updateObject( state, object );
 };
 
-// available funds
+// ETH BALANCE
+const getBalanceSuccess = ( state, action ) => {
+    let object;
+    if ( action.isActiveUser ) { 
+        object = { balancesActive: { ...state.balancesActive, ethBalance: action.ethBalance } };
+    } else {
+        object = { balances: { ...state.balances, ethBalance: action.ethBalance } };
+    }
+    return updateObject( state, object );
+};
+
+// AVAILABLE FUNDS (ACTIVE USER)
 const fetchAvailableFundsStart = ( state, ) => {
-    return updateObject( state, { loading: true } );
+    return updateObject( state, { gettingAvailableFunds: true } );
 };
 
 const fetchAvailableFundsSuccess = ( state, action ) => {
     return updateObject( state, {
-        loading: false,
+        gettingAvailableFunds: false,
         availableFunds: action.availableFunds,
     } );
 };
 
 const fetchAvailableFundsFail = ( state, ) => {
-    return updateObject( state, { loading: false } );
+    return updateObject( state, { gettingAvailableFunds: false } );
 };
 
-// balance
-const getBalanceSuccess = ( state, action ) => {
-    return updateObject( state, { 
-        balances: {...state.balances, ethBalance: action.ethBalance}
-    } );
-};
-
-// claim rewards
+// ACTIVE USER CLAIM REWARDS
 const claimRewardsStart = ( state, ) => {
-    return updateObject( state, { processingGetFunds: true } );
+    return updateObject( state, { claimingFunds: true } );
 };
 
 const claimRewardsSuccess = ( state, ) => {
-    return updateObject( state, { 
-        processingGetFunds: false,
-        availableFunds: 0
-    } );
+    return updateObject( state, { availableFunds: 0, claimingFunds: false } );
 };
 
 const claimRewardsFail = ( state, action ) => {
     return updateObject( state, { 
-        processingGetFunds: false,
-        errorGetFunds: action.errorGetFunds
+        errorClaimFunds: action.errorGetFunds, 
+        claimingFunds: false 
     } );
 };
 
-// reducer
+// REDUCER
 const reducer = ( state = initialState, action ) => {
     switch ( action.type ) {
-        // address info
+        // CLEAR ACTIVE USER DATA
+        case actionTypes.CLEAR_WEB3ADDRESS_DATA : return clearWeb3AddressData( state, action );
+        // USER INFO
         case actionTypes.FETCH_ADDRESSINFO_START: return fetchAddressInfoStart( state, action );
         case actionTypes.FETCH_ADDRESSINFO_SUCCESS: return fetchAddressInfoSuccess( state, action );
         case actionTypes.FETCH_ADDRESSINFO_FAIL: return fetchAddressInfoFail( state, action );
-        // get available funds
+        // BALANCE
+        case actionTypes.GET_BALANCE: return getBalanceSuccess( state, action );
+        // AVAILABLE FUNDS (ACTIVE USER)
         case actionTypes.FETCH_AVAILABLE_FUNDS_START: return fetchAvailableFundsStart( state, action );
         case actionTypes.FETCH_AVAILABLE_FUNDS_SUCCESS: return fetchAvailableFundsSuccess( state, action );
         case actionTypes.FETCH_AVAILABLE_FUNDS_FAIL: return fetchAvailableFundsFail( state, action );
-        // get balance
-        case actionTypes.GET_BALANCE: return getBalanceSuccess( state, action );
-        // claim rewards
+        // CLAIM REWARDS (ACTIVE USER)
         case actionTypes.CLAIM_REWARDS_START: return claimRewardsStart( state, action );
         case actionTypes.CLAIM_REWARDS_SUCCESS: return claimRewardsSuccess( state, action );
         case actionTypes.CLAIM_REWARDS_FAIL: return claimRewardsFail( state, action );

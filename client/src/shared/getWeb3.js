@@ -36,12 +36,13 @@ const getWeb3 = ( source ) =>
                 } catch(error) {
                     reject( error );
                 }
-            } else if ( source === 'infura' ) {
+            } else if ( source === 'custom' ) {
                 try {
                     const provider = new Web3.providers.HttpProvider(
-                        'https://ropsten.infura.io/v3/d09825f256ae4705a74fdee006040903'
+                        'https://ropsten.infura.io/v3/639d9fb0f9ec44ab9c282d1f5fce6325'
                     );
                     const web3 = new Web3(provider);
+                    console.log('Using Infura');
                     resolve( web3 );
                 } catch (error) {
                     reject( error );
