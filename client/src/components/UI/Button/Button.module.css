@@ -24,7 +24,12 @@
 }
 
 .Success {
+    background-color: rgb(222, 233, 230);
     color: #5C9210;
+}
+
+.Success:hover {
+    background-color: rgb(165, 190, 184);
 }
 
 .Danger {
@@ -78,5 +83,16 @@
 
 .Follow:hover {
     background-color: rgb(130, 44, 90);
+    color: rgb(238, 231, 231);
+}
+
+
+.Unfollow {
+    background-color: rgb(180, 154, 165);
+    color: white;
+}
+
+.Unfollow:hover {
+    background-color: rgb(163, 147, 163);
     color: rgb(238, 231, 231);
 }

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 
 import * as actions from '../../store/actions';
@@ -8,76 +9,87 @@ import emptyProfilePic from '../../assets/persona.png';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import Modal from '../../components/UI/Modal/Modal';
 import Button from '../../components/UI/Button/Button';
-import EditProfile from '../EditProfile/EditProfile';
+import EditProfile from './EditProfile/EditProfile';
 import CreateArtwork from '../CreateArtwork/CreateArtwork';
 import KanbanArtworks from '../KanbanArtworks/KanbanArtworks';
 
 class Profile extends React.Component {
 
     state = {
+        hasActiveAccount: null,
         showCreatedTokens: true,
         showPurchasedTokens: false,
         creatingArtwork: false, 
         editingProfile: false
     }
 
-    componentDidMount = async () => {
-        // web3Objects
-        if ( !this.props.loadingWeb3 && (!this.props.web3 || !this.props.contract) ) {
-            await this.props.onGetWeb3Objects();
-        }
-        if (this.props.web3 && !this.props.loadingAccounts && !this.props.accounts) {
-            await this.props.onGetWeb3Accounts(this.props.web3);
-        }
+    componentDidMount = () => {
+        // firebase user info
+        if ( 
+            this.props.match.path !== '/profile' && this.props.idToken && !this.props.fetchingProfile &&
+            (
+                ( !this.props.profile ) ||
+                ( this.props.match.params.id !== this.props.profile.userId )
+            )
+        ) { 
+            
+            // console.log('[componentDidMount]');
+            // console.log('[onFetchProfile](profile) = ', this.props.profile);
 
-        // profile info for fetching firebase
-        let userId = this.props.userId;
-        let userAddress;
-        if ( this.props.match.path === '/profile' ) {
-            userId = this.props.userId;
-            if ( this.props.accounts && this.props.accounts.length !== 0 ) {
-                userAddress = this.props.accounts[0];
+            this.props.onFetchProfile(this.props.match.params.id, this.props.idToken);
+            if ( this.props.profile ) {
+                this.props.onFetchAddressInfo(
+                    this.props.web3, 
+                    this.props.profile.userAddress,
+                    this.props.contract.methods
+                )
             }
-        } else if ( this.props.match.params.id ) {
-            // userId = 
-            userAddress = this.props.match.params.id;
-        }
-
-        // firebase
-        if ( 
-            (!this.props.loadingFirebase && !this.props.profileInfo) 
-            &&
-            (userId && this.props.idToken)
-        ) {
-            await this.props.onFetchProfile(userId, this.props.idToken);
-        }
-
-        // web3 address
-        if ( 
-            (this.props.web3 && !this.props.loadingAddress && this.props.contract) && 
-            (!this.props.artworks || this.props.address !== userAddress)
-        ) {
-            await this.props.onFetchAddressInfo(
-                this.props.web3,
-                userAddress,
-                this.props.contract.methods
-            );
         }
     }
 
+    componentDidUpdate( prevProps ) {
+        // console.log('[componentDidUpdate]');
+        if ( prevProps.fetchingProfile && !this.props.fetchingProfile ) {
+            this.props.onFetchAddressInfo( 
+                this.props.web3, this.props.profile.userAddress, this.props.contract.methods
+            );
+        }
+        // console.log(
+        //     'this.props.activeUserInfo.public = ', 
+        //     this.props.activeUserInfo.public
+        // );
+    }
+
     followButtonHandler = ( ) => {
+        // console.log('[followButtonHandler]');
+        // console.log('profile = ', this.props.profile);
+
+        let unfollow = false;
+        if ( this.props.activeUserInfo.public.following ) {
+            let following = Object.keys(this.props.activeUserInfo.public.following);
+            let profileId = this.props.profile.userId;
+            if ( following.includes( profileId ) ) {
+                unfollow = true;
+            }
+        }
+
+        // console.log('unfollow = ', unfollow);
+    
         this.props.onFollowUser(
             this.props.userId, 
+            this.props.activeUser.userAddress,
             this.props.match.params.id, 
-            this.props.idToken
+            this.props.profile.userAddress,
+            this.props.idToken,
+            unfollow
         );
     }
 
     showKanbanHandler = ( kanbanMode ) => {
         if ( kanbanMode === 'purchases' && !this.state.showPurchasedTokens ) {
-            this.setState({showCreatedTokens: false, showPurchasedTokens: true});
+            this.setState({ showCreatedTokens: false, showPurchasedTokens: true });
         } else if ( kanbanMode === 'creations' && !this.state.showCreatedTokens ) {
-            this.setState({showCreatedTokens: true, showPurchasedTokens: false});
+            this.setState({ showCreatedTokens: true, showPurchasedTokens: false });
         }
     }
 
@@ -93,75 +105,97 @@ class Profile extends React.Component {
         this.setState({ creatingArtwork: false, editingProfile: false });
     }
 
-    clickSubmitted = () => {
-        this.hideModal();
-    }
+    clickSubmitted = () => { this.hideModal(); }
 
     render() {
         // MODALS
         let createArtworkForm;
-        if ( this.props.web3 && this.props.contract && this.props.accounts ) {
+        if ( this.props.web3 && this.props.contract && this.props.activeAddress ) {
             createArtworkForm = <CreateArtwork
-                clickCancel={this.hideModal}
-                clickSubmitNewArtwork={this.clickSubmitted}
+                clickCancel={ this.hideModal }
+                clickSubmitNewArtwork={ this.clickSubmitted }
             />
         }
 
         let editProfileForm;
-        if ( this.props.profileInfo ) {
+        if ( !this.props.errorFetchingActiveUser && this.props.activeUserInfo ) {
             editProfileForm = 
                 <EditProfile 
-                    clickCancel={this.hideModal} 
-                    clickSubmitProfileEdit={this.clickSubmitted}
-                    profileImageSrc={this.props.profileInfo.imageSrc}
-                    profileUserName={this.props.profileInfo.name}
-                    profileDescription={this.props.profileInfo.description}
+                    clickCancel={ this.hideModal } 
+                    clickSubmitProfileEdit={ this.clickSubmitted }
+                    profileImageSrc={ this.props.activeUserInfo.public.imageSrc }
+                    profileUserName={ this.props.activeUserInfo.public.name }
+                    profileDescription={ this.props.activeUserInfo.public.description }
                 />
         }
 
         // EDIT BUTTONS
         let profileButtons;
-        if (
-            !this.props.match.params.id || 
-                (
-                    this.props.accounts && 
-                    ( this.props.match.params.id !== this.props.accounts[0] )
-                )
-            ) {
+        if ( this.props.match.path === '/profile' ) {
                 profileButtons =
                     <React.Fragment>
                         <Button 
-                            clicked={() => {this.showModal('Edit Profile')}}
+                            clicked={() => { this.showModal('Edit Profile')} }
                             btnType="EditProfile">
                                 EDIT PROFILE
                         </Button>
                         <Button
-                            clicked={() => {this.showModal('Create Artwork')}}
+                            clicked={() => { this.showModal('Create Artwork')} }
                             btnType="CreateArtwork"
-                            disabled={this.props.accounts.length === 0 ? false : true}>
+                            disabled={ !this.props.activeAddress }>
                                 NEW ARTWORK
                             </Button>
                     </React.Fragment>
-        } else {
+        } else if ( 
+            !this.props.fetchingInfo && this.props.profile &&
+            this.props.activeUserInfo && this.props.activeUserInfo.public
+        ) {
+            let buttonClass = 'Follow';
+            if ( this.props.activeUserInfo.public.following ) {
+                let following = Object.keys(this.props.activeUserInfo.public.following);
+                let profileId = this.props.profile.userId;
+                if ( following.includes( profileId ) ) {
+                    buttonClass = 'Unfollow';
+                }
+            }
+
             profileButtons =
                 <React.Fragment>
                     <Button 
                         clicked={() => { this.followButtonHandler() } }
-                        btnType="Follow">
-                            FOLLOW
+                        btnType={ buttonClass }>
+                            { buttonClass.toUpperCase() }
                     </Button>
                 </React.Fragment>
         }
 
         // PROFILE SECTION
+        let profileDict;
+        let balancesDict;
+        if ( this.props.match.path === '/profile' ) {
+            if (this.props.activeUserInfo && this.props.activeUserInfo.public) {
+                profileDict = this.props.activeUserInfo.public;
+            }
+            if (this.props.balancesActive) {
+                balancesDict = this.props.balancesActive;
+            }
+        } else if ( this.props.match.path !== '/profile' ) {
+            if ( !this.props.fetchingInfo && this.props.profileInfo ) {
+                profileDict = this.props.profileInfo;
+            }
+            if ( !this.props.fetchingInfo ) {
+                balancesDict = this.props.balances;
+            }
+        }
+
         let profileInfo;
-        if ( !this.props.loadingFirebase ) {
-            let imgClasses = [classes.ProfileImageContainer]
+        if ( profileDict ) {
+            let imgClasses = [ classes.ProfileImageContainer ];
             let profileSrc = emptyProfilePic;
-            if (this.props.profileInfo && this.props.profileInfo.imageSrc) {
-                profileSrc = 'https://ipfs.io/ipfs/' + this.props.profileInfo.imageSrc
+            if ( profileDict.imageSrc ) {
+                profileSrc = 'https://ipfs.io/ipfs/' + profileDict.imageSrc;
             } else {
-                imgClasses.push(classes.EmptyImageBackground)
+                imgClasses.push(classes.EmptyImageBackground);
             }
             let profilePic = <img src={profileSrc} alt={profileSrc} />
 
@@ -170,16 +204,16 @@ class Profile extends React.Component {
                     <div className={[classes.InfoWrapper, classes.LeftColumn].join(' ')}>
                         <b>
                             { 
-                                this.props.profileInfo && this.props.profileInfo.followers
-                                ? Object.keys(this.props.profileInfo.followers).length
+                                profileDict.followers
+                                ? Object.keys(profileDict.followers).length
                                 : 0
                             }
                         </b>
                         <span>Followers</span>
                         <b>
                             {
-                                this.props.profileInfo && this.props.profileInfo.following
-                                ? Object.keys(this.props.profileInfo.following).length
+                                profileDict.following
+                                ? Object.keys(profileDict.following).length
                                 : 0
                             }
                         </b>
@@ -189,44 +223,32 @@ class Profile extends React.Component {
                         <div className={imgClasses.join(' ')}>
                             { profilePic }
                         </div>
-                        <h1>{ 
-                                this.props.profileInfo && this.props.profileInfo.name
-                                ? this.props.profileInfo.name
-                                : ''
-                            }
+                        <h1>{ profileDict.name }
                         </h1>
                         <div className={classes.ProfileAddress}>
                             { this.props.address }
                         </div>
                         <div className={classes.ProfileDescription}>
-                            {
-                                this.props.profileInfo && this.props.profileInfo.description
-                                ? this.props.profileInfo.description
-                                : ''
-                            }
+                            { profileDict.description }
                         </div>
                         <div className={classes.ButtonsContainer}>
-                            {
-                                this.props.profileInfo
-                                ? profileButtons
-                                : null
-                            }
+                            { profileButtons }
                         </div>
                     </div>
                     {
-                        this.props.address ?
+                        balancesDict ?
                         <div className={[classes.InfoWrapper, classes.RigthColumn].join(' ')}>
                             Artworks
                             <span className={classes.ProfileStatCount}>
-                                <b>{this.props.balances.tokenBalance}</b>
+                                <b>{balancesDict.tokenBalance}</b>
                             </span>
                             Created
                             <span className={classes.ProfileStatCount}>
-                                <b>{this.props.balances.numTokensCreated}</b>
+                                <b>{balancesDict.numTokensCreated}</b>
                             </span>
                             Bought
                             <span className={classes.ProfileStatCount}>
-                                <b>{this.props.balances.numTokensBought}</b>
+                                <b>{balancesDict.numTokensBought}</b>
                             </span>
                         </div> : ''
                     }
@@ -234,19 +256,40 @@ class Profile extends React.Component {
             )
         }
 
-        // kanban
-        let kanbanArtworks = <Spinner />;
-        kanbanArtworks = '';
-        if (
-            !this.props.loadingWeb3 && !this.props.loadingAddress && this.props.artworks
-        ) {
-            kanbanArtworks = <KanbanArtworks page='profile' showMode={
-                this.state.showCreatedTokens ? 'creations' : 'purchases'
-            }/>;
+        let creatingArtworkMessage;
+        if (this.props.match.path === '/profile' && this.props.creatingArtwork) {
+            creatingArtworkMessage = 
+                <div className={classes.CreatingArtworkMessage}>
+                    Creating artwork, we are verifying it is added to a new block...
+                    <Spinner/>
+                </div>
+        } else if (this.props.match.path === '/profile' && this.props.creationError) {
+            creatingArtworkMessage = 
+                <div className={classes.CreatingArtworkMessage}>
+                    Something went wrong: could not create the artwork.
+                </div>
         }
 
+        // KANBAN
+        let kanbanArtworks = <Spinner />;
+        if ( this.props.artworksActive ) {
+            kanbanArtworks = 
+                <KanbanArtworks 
+                    page={this.props.match.path === '/profile' ? 'activeProfile' : 'profile'}
+                    showMode={ this.state.showCreatedTokens ? 'creations' : 'purchases' }
+                />;
+        }
+
+        let redirectToProfile;
+        if ( 
+            this.props.match.path !== '/profile' &&
+            this.props.match.params.id === this.props.activeUser.userId 
+        ) {
+            redirectToProfile = <Redirect to="/profile" exact />
+        }
         return (
             <div className={classes.ProfileContainer}>
+                { redirectToProfile }
                 <Modal 
                     show={this.state.creatingArtwork || this.state.editingProfile}
                     modalClosed={this.hideModal}>
@@ -255,16 +298,17 @@ class Profile extends React.Component {
                 <div className={classes.ProfileHeaderContainer}>
                     { profileInfo }
                 </div>
+                { creatingArtworkMessage }
                 <div className={classes.KanbanModeContainer}>
                     <ul className={classes.KanbanMode}>
                         <li 
                             className={this.state.showCreatedTokens ? classes.ActiveMode : ''}
-                            onClick={() => {this.showKanbanHandler('creations')}}>
+                            onClick={() => { this.showKanbanHandler('creations')} }>
                             MY CREATIONS
                         </li>
                         <li 
                             className={this.state.showPurchasedTokens ? classes.ActiveMode : ''}
-                            onClick={() => { this.showKanbanHandler('purchases')}}>
+                            onClick={() => { this.showKanbanHandler('purchases')} }>
                             MY COLLECTION
                         </li>
                     </ul>
@@ -279,44 +323,91 @@ class Profile extends React.Component {
 
 const mapStateToProps = state => {
     return {
-        // auth info
+        /* -----------
+          AUTH INFO
+        ----------- */
         userId: state.auth.userId,
         idToken: state.auth.idToken,
-        // Web3Objects
-        // inject web3 and contract
+
+        /* -----------------
+          FIREBASE PROFILE
+        ----------------- */
+        // FETCH ACTIVE USER
+        activeUser: state.firebaseProfile.activeUser,
+        activeUserInfo: state.firebaseProfile.activeUserInfo,
+        fetchingActiveUser: state.firebaseProfile.fetchingActiveUser,
+        errorFetchingActiveUser: state.firebaseProfile.errorFetchingActiveUser,
+        // FETCH EXTERNAL PROFILE
+        profile: state.firebaseProfile.profile,
+        profileInfo: state.firebaseProfile.profileInfo,
+        fetchingProfile: state.firebaseProfile.fetchingProfile,
+        errorFetchInfo: state.firebaseProfile.errorFetchInfo,
+        // FOLLOW AND EDIT
+        errorFollow: state.firebaseProfile.errorFollow,
+        errorEdit: state.firebaseProfile.errorEdit,
+
+        /* -------------
+          WEB3 OBJECTS
+        ------------- */
+        // web3mode: state.web3Objects.web3mode,
+        // WEB3 AND CONTRACT INJECTION
         web3: state.web3Objects.web3,
-        contract: state.web3Objects.contract,
         loadingWeb3: state.web3Objects.loadingWeb3,
         errorWeb3: state.web3Objects.errorWeb3,
-        // get accounts
-        accounts: state.web3Objects.accounts,
-        loadingAccounts: state.web3Objects.loadingAccounts,
-        errorAccounts: state.web3Objects.errorAccounts,
-        // address info
-        loadingAddress: state.web3Address.loading,
-        address: state.web3Address.address,
+        contract: state.web3Objects.contract,
+        loadingContract: state.web3Objects.loadingContract,
+        errorContract: state.web3Objects.errorContract,
+        // ACTIVE USER ACCOUNTS
+        // if browser mode
+        // accountsActive: state.web3Objects.accounts,
+        // loadingAccountsActive: state.web3Objects.loadingAccounts,
+        // errorAccountsActive: state.web3Objects.errorAccounts,
+        // if custom mode
+        // seeds: state.web3Objects.seeds,
+        // wallet: state.web3Objects.wallet,
+        // addressActive: state.web3Objects.address,
+        // gettingAddressActive: state.web3Objects.gettingAddress,
+        // errorAddressActive: state.web3Objects.errorAddress,
+
+        /* -------------
+          WEB3 ADDRESS
+        ------------- */
+        // ACTIVE USER INFO
+        activeAddress: state.web3Address.addressActive,
+        balancesActive: state.web3Address.balancesActive,
+        artworksActive: state.web3Address.artworksActive,
+        fetchingInfoActive: state.web3Address.fetchingInfoActive,
+        // EXTERNAL USER INFO
+        externalAddress: state.web3Address.address,
         balances: state.web3Address.balances,
         artworks: state.web3Address.artworks,
-        listSupporters: state.web3Address.listSupporters,
-        // firebase
-        loadingFirebase: state.firebaseProfile.loading,
-        profileInfo: state.firebaseProfile.profileInfo,
-        errorFollow: state.firebaseProfile.errorFollow
+        fetchingInfo: state.web3Address.fetchingInfo,
+
+        /* ---------
+          ARTWORKS
+        --------- */
+        creatingArtwork: state.artwork.creatingArtwork,
+        creationError: state.artwork.creationError
     };
 };
 
 const mapDispatchToProps = dispatch => ({
-    onGetWeb3Objects: () => dispatch( actions.getWeb3Objects() ),
-    onGetWeb3Accounts: (web3) => dispatch( actions.getWeb3Accounts(web3) ),
+    // FIREBASE PROFILE
+    onFetchProfile: ( userId, idToken ) => dispatch(
+        actions.fetchProfile(userId, idToken)
+    ),
+    // FIREBASE FOLLOW
+    onFollowUser: ( 
+        fromUserId, fromAddress, toUserId, toAddress, idToken, unfollow 
+    ) => dispatch(
+        actions.followUser(
+            fromUserId, fromAddress, toUserId, toAddress, idToken, unfollow
+        )
+    ),
+    // USER INFO
     onFetchAddressInfo: ( web3, userAddress, methods ) => dispatch( 
-        actions.fetchAddressInfo(web3, userAddress, methods)
+        actions.fetchAddressInfo(web3, userAddress, methods, false)
     ),
-    onFetchProfile: ( userAddress, idToken ) => dispatch(
-        actions.fetchProfile(userAddress, idToken)
-    ),
-    onFollowUser: ( fromUserId, toUserAddres, idToken ) => dispatch(
-        actions.followUser(fromUserId, toUserAddres, idToken)
-    )
 });
 
 export default connect( mapStateToProps, mapDispatchToProps )( Profile );

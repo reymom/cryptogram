@@ -17,7 +17,44 @@
     padding: 5px;
 }
 
-.ArtworkContainer {
+/* GAS FEE MODAL */
+.GasFeeModalOptions {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    gap: 10px;
+}
+
+.GasFeeOption {
+    cursor: pointer;
+    padding: 30px;
+    text-align: center;
+    border: 1px solid rgb(223, 202, 202);
+    border-radius: 10px;
+}
+
+.GasFeeOption:hover {
+    background-color: rgb(194, 166, 166);
+}
+
+.GasFeeOptionActive {
+    background-color: rgb(161, 95, 78);
+}
+
+.GasFeeOptionActive:hover {
+    background-color: rgb(161, 95, 78);
+}
+
+.OptionDetails {
+    text-align: center;
+}
+
+.CenterButtons {
+    text-align: center;
+}
+
+/* ARTWORK INFO */
+.Container {
     width: 80%;
     margin: auto;
     padding: 30px;
@@ -27,9 +64,33 @@
     text-align: center;
 }
 
+.ProfileImageContainer img {
+    cursor: pointer;
+    object-fit: cover;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    -ms-border-radius: 50%;
+    -o-border-radius: 50%;
+    border: 2px solid #d8b3b3;
+}
+
+.EmptyImageBackground img {
+    cursor: pointer;
+    background: linear-gradient(to right, rgb(114, 114, 126), rgb(95, 109, 126), rgb(165, 159, 206), rgb(123, 113, 187));
+}
+
+.UserName {
+    cursor: pointer;
+    margin: 0;
+}
+
 .UserAddress {
     cursor: pointer;
     color:rgb(122, 116, 116);
+    margin-bottom: 30px;
 }
 
 .UserAddress:hover {
@@ -51,18 +112,6 @@
     border-radius: 20px 0px 0px 20px;
 }
 
-.InfoContainer {
-    flex: 2;
-}
-
-.InfoContainer ul {
-    margin: 20px;
-}
-
-.InfoContainer ul li {
-    padding: 10px;
-}
-
 .Image {
     width: 100%;
     padding: 0;
@@ -71,55 +120,49 @@
     overflow: auto;
 }
 
-.SupportBuyContainer {
+.InfoContainer {
+    flex: 2;
+}
+
+.InfoContainer ul {
+    margin: 5px;
+}
+
+.InfoContainer ul li {
+    padding: 10px;
+}
+
+.ListSupporters {
+    list-style-type: none;
+    margin: 0 10px;
+    color: rgb(66, 37, 93);
+    overflow-y: scroll;
+    white-space: nowrap;
+}
+
+.ButtonsContainer {
     display: flex;
-    /* flex-direction: column; */
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    gap: 10px;
 }
 
-.LikeButtonContainer {
-    /* margin: auto; */
-    /* width: 60%; */
-    /* margin-top: 20px; */
-    /* text-align: center; */
-    border: 3px solid rgb(138, 88, 88);
-    border-radius: 10px;
+.ButtonContainer {
+    color:rgb(119, 116, 116);
     cursor: pointer;
+    width: 15%;
+    text-align: center;
 }
 
-.LikeButtonContainer:hover {
-    background-color: rgb(119, 116, 116);
-}
-
-.BuyContainer {
+.Button {
     border: 2px solid rgb(75, 128, 81);
     border-radius: 10px;
-    cursor: pointer;
-    width: 10%;
-    text-align: center;
-    margin: auto;
+    padding: 10px;
 }
 
-.BuyContainer:hover {
-    background-color: rgb(154, 192, 158);
-}
-
-.BuyButton {
-    padding: 5px;
-}
-
-.Supporters {
-    /* margin: auto; */
-    margin-top: 10px;
-    text-align: center;
-    color:rgb(119, 116, 116)
-}
-
-.Supporters ul {
-    list-style-type: none;
-    padding: 0;
-    margin: 10px 0 0 0;
-    color: rgb(66, 37, 93)
+.Button:hover {
+    background-color: rgb(241, 248, 242);
 }
 
 .Processing {
@@ -127,6 +170,8 @@
     margin: auto;
     padding: 4px;
     text-align: center;
+    border: 1px dashed rgb(182, 206, 192);
+    border-radius: 50px;
 }
 
 .ErrorContainer {
@@ -137,10 +182,4 @@
     text-align: center;
     border: 1px dashed rgb(255, 0, 0);
     border-radius: 50px;
-}
-
-.ErrorIcon {
-}
-
-.ErrorMessage{
 }

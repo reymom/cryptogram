@@ -4,6 +4,7 @@ import classes from './LoadedHistory.module.css';
 import Aux from '../../hoc/Aux/Aux';
 
 const loadedHistory = ( props ) => {
+    console.log('props = ', props);
     let content = '';
     if (props.type === 'Creation') {
         content = <div className={classes.InfoContainer}>
@@ -18,7 +19,7 @@ const loadedHistory = ( props ) => {
             <p>{ props.artwork.purchasePrice }</p>
         </div>
     }
-    
+
     return (
         <Aux>
             <div className={classes.ArtworkContainer} onClick={ props.clicked }>

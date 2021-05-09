@@ -2,12 +2,12 @@ import React from 'react';
 import { connect } from 'react-redux';
 
 import classes from './EditProfile.module.css';
-import * as actions from '../../store/actions';
-import { checkValidity } from '../../shared/utility';
+import * as actions from '../../../store/actions';
+import { checkValidity } from '../../../shared/utility';
 
-import Aux from '../../hoc/Aux/Aux';
-import Button from '../../components/UI/Button/Button';
-import Input from '../../components/UI/Input/Input';
+import Aux from '../../../hoc/Aux/Aux';
+import Button from '../../../components/UI/Button/Button';
+import Input from '../../../components/UI/Input/Input';
 
 class EditProfile extends React.Component {
     state = {
@@ -28,7 +28,7 @@ class EditProfile extends React.Component {
                 elementConfig: { type: 'text', placeholder: 'Edit name...' },
                 value: '',
                 validation: { required: true, minLength: 1, maxLength: 50 },
-                valid: false,
+                valid: true,
                 touched: false
             },
             description: {
@@ -36,7 +36,7 @@ class EditProfile extends React.Component {
                 elementConfig: { type: 'text', placeholder: 'Edit description...' },
                 value: '',
                 validation: { required: true, minLength: 1, maxLength: 100 },
-                valid: false,
+                valid: true,
                 touched: false
             },
         },
@@ -81,25 +81,58 @@ class EditProfile extends React.Component {
         this.setState({ form: updatedForm, formIsValid: formIsValid });
     }
 
+    clickCancelHandler = () => {
+        this.setState({
+            form: {
+                ...this.state.form,
+                image: {
+                    ...this.state.form.image,
+                    value: '',
+                    valid: true,
+                    touched: false
+                },
+                name: {
+                    ...this.state.form.name,
+                    value: '',
+                    valid: true,
+                    touched: false
+                },
+                description: {
+                    ...this.state.form.description,
+                    value: '',
+                    valid: true,
+                    touched: false
+                }
+            }
+        });
+        this.props.clickCancel();
+    }
+
     editProfileHandler = async (event) => {
         event.preventDefault();
 
-        let data = {
-            name: this.state.form['name'].value,
-            description: this.state.form['description'].value
+        let data = {};
+        if (this.state.form['name'].value) {
+            data['name'] = this.state.form['name'].value;
         }
+        if (this.state.form['description'].value) {
+            data['description'] = this.state.form['description'].value;
+        }
+        console.log('data = ', data);
 
         if (this.state.selectedFile) {
             const file = await this.props.IPFSInstance.add(this.state.selectedFile);
             if ( file.path ) {
-                data.imageSrc = file.path;
+                data['imageSrc'] = file.path;
             } else {
                 this.setState({ IPFSError: true })
             }
         }
 
-        this.props.onEditProfile(this.props.userId, this.props.idToken, data)
-        this.setState({ selectedFile: null, fileSrc: '' });
+        if (data) {
+            this.props.onEditProfile(this.props.userId, this.props.idToken, data)
+            this.setState({ selectedFile: null, fileSrc: '' });
+        }
         this.props.clickSubmitProfileEdit();
     }
 
@@ -141,7 +174,7 @@ class EditProfile extends React.Component {
                     <Button btnType="Success" disabled={ !this.state.formIsValid }>
                         EDIT
                     </Button>
-                    <Button type="button" btnType="Danger" clicked={this.props.clickCancel}>
+                    <Button type="button" btnType="Danger" clicked={() => { this.clickCancelHandler() } }>
                         CANCEL
                     </Button>
                 </div>

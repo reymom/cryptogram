@@ -27,6 +27,15 @@
     background: linear-gradient(to right, rgb(114, 114, 126), rgb(95, 109, 126), rgb(165, 159, 206), rgb(123, 113, 187));
 }
 
+.Address {
+    text-decoration: none;
+    color: rgb(205, 228, 212);
+}
+
+.Address:hover {
+    color:rgb(233, 233, 233);
+}
+
 .Hr {
     width: 100%;
     border: 0;
@@ -34,12 +43,28 @@
     margin: 10px 0 10px 0;
 }
 
-.EthBalanceContainer {
-    margin-bottom: 20px;
+.Balances {
+    width: 80%;
+    margin: auto;
+    margin-bottom: 10px;
+    display: grid;
+    grid-template-columns: 4fr 3fr;
+    text-align: right;
+    align-items: center;
 }
 
-.AvailableFundsContainer {
-    margin-top: 20px;
+.Balances div {
+    font-size: 13px;
+    padding: 5px;
+    border-right: 1px solid rgb(192, 172, 172);
+    color:rgb(5, 1, 29);
+}
+
+.Balances span {
+    text-align: left;
+    margin-left: 5px;
+    font-size: 17px;
+    color: rgb(0, 0, 0);
 }
 
 .RewardsButton {

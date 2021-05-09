@@ -21,7 +21,6 @@ class KanbanArtworks extends React.Component {
     }
 
     render () {
-
         let kanbanArtworks = [<Spinner key={0}/>];
         let artworks;
         if (
@@ -29,23 +28,35 @@ class KanbanArtworks extends React.Component {
         ) {
             artworks = this.props.homeArtworks;
         } else if (
-            this.props.page === 'profile' &&  !this.props.loadingAddress && this.props.profileArtworks
+            this.props.page === 'activeProfile' && this.props.artworksProfileActive
         ) {
-            artworks = this.props.profileArtworks;
+            artworks = this.props.artworksProfileActive;
+        } else if (
+            this.props.page === 'profile' && this.props.artworksProfile
+        ) {
+            artworks = this.props.artworksProfile;
         }
 
         if ( artworks ) {
-            console.log('homeArtworks = ', this.props.homeArtworks);
-            console.log('profileArtworks = ', this.props.profileArtworks);
 
             kanbanArtworks = artworks.map(artwork => {
-                if (this.props.showMode) {
+                // console.log('creator = ', artwork.creator);
+                // console.log('this.props.showMode = ', this.props.showMode);
+                // console.log('this.props.page = ', this.props.page);
+
+                if ( this.props.showMode ) {
+                    let ownerAddress = this.props.activeAddress;
+                    // console.log('ownerAddress = ', ownerAddress);
+                    if ( this.props.page === 'profile' ) {
+                        ownerAddress = this.props.externalAddress;
+                    }
+
                     if (this.props.showMode === 'creations') {
-                        if (artwork.creator !== this.props.userAddress) {
+                        if (artwork.creator.toUpperCase() !== ownerAddress.toUpperCase()) {
                             return '';
                         }
                     } else if (this.props.showMode === 'purchases') {
-                        if (artwork.creator === this.props.userAddress) {
+                        if (artwork.creator.toUpperCase() === ownerAddress.toUpperCase()) {
                             return '';
                         }
                     }
@@ -89,22 +100,31 @@ class KanbanArtworks extends React.Component {
 
 const mapStateToProps = state => {
     return {
-        // web3 objects
+        /* -------------
+          WEB3 OBJECTS
+        ------------- */
         contract: state.web3Objects.contract,
-        // web3 address
-        loadingAddress: state.web3Address.loading,
-        userAddress: state.web3Address.address,
-        profileArtworks: state.web3Address.artworks,
-        // artworks from address
-        fetchingArtworks: state.artwork.fetchingArtworks,
-        homeArtworks: state.artwork.artworks
+        
+        /* -------------
+          WEB3 ADDRESS
+        ------------- */
+        // ACTIVE USER INFO
+        activeAddress: state.web3Address.addressActive,
+        artworksProfileActive: state.web3Address.artworksActive,
+        // EXTERNAL USER INFO
+        externalAddress: state.web3Address.address,
+        artworksProfile: state.web3Address.artworks,
+
+        /* ----------------
+          ARTWORKS GENERAL
+        ------------------ */
+        homeArtworks: state.artwork.artworks,
+        fetchingArtworks: state.artwork.fetchingArtworks
     };
 };
 
 const mapDispatchToProps = dispatch => ({
-    onFetchArtworks: ( methods ) => dispatch( 
-        actions.fetchArtworks( methods )
-    )
+    onFetchArtworks: ( methods ) => dispatch( actions.fetchArtworks( methods ) )
 });
 
 export default connect( mapStateToProps, mapDispatchToProps )( withRouter(KanbanArtworks) );

@@ -11,27 +11,31 @@ import LoadedHistory from '../../components/LoadedHistory/LoadedHistory';
 class Histories extends React.Component {
     state = {
         visitingArtworks: false,
-        
+        currentCreationId: null,
         currentCreation: null,
+        currentPurchaseId: null,
         currentPurchase: null
     };
 
-    componentDidMount = async () => {
+    componentDidMount() {
+        // console.log('[componentDidMount]');
         if ( 
-            this.props.contract && !this.props.loadingFirebase && 
-            this.props.profileInfo && 
-            this.props.profileInfo.following && this.props.profileInfo.following.length > 0
+            this.props.contract && 
+            this.props.activeUserInfo.public.following && 
+            Object.keys(this.props.activeUserInfo.public.following).length > 0
         ) {
-            await this.props.onFetchEvents(
-                this.props.contract, 
-                this.props.profileInfo.following
+            let followingObject = this.props.activeUserInfo.public.following;
+            let followingList = Object.values(followingObject);
+            this.props.onFetchEvents(
+                this.props.contract, followingList, 'newArtwork'
+            );
+            this.props.onFetchEvents(
+                this.props.contract, followingList, 'artworkBought'
             );
         }
     };
 
-    componentWillUnmount() {
-        clearInterval(this.artworkInterval);
-    }
+    componentWillUnmount() { clearInterval(this.artworkInterval); }
 
     orderByVisited = ( dictionary ) => {
         dictionary.sort(function(x, y) {
@@ -44,52 +48,60 @@ class Histories extends React.Component {
         clearInterval(this.artworkInterval);
         this.setState({ 
             visitingArtworks: false,
+            currentCreationId: null,
             currentCreation: null,
+            currentPurchaseId: null,
             currentPurchase: null
         });
     }
 
     changeVisitingArtwork = () => {
+        console.log('[changeVisitingArtwork]');
         let eventType;
         let listArtworks;
-        let currentArtwork;
-        if (this.state.currentCreation) {
+        let currentArtworkId;
+        if ( this.state.currentCreationId !== null ) {
             eventType = 'Creation';
-            currentArtwork = this.state.currentCreation;
             listArtworks = this.props.newCreations;
-        } else if (this.state.currentPurchase) {
+            currentArtworkId = parseInt(this.state.currentCreationId);
+        } else if ( this.state.currentPurchase !== null ) {
             eventType = 'Purchase';
-            currentArtwork = this.state.currentPurchase;
-            listArtworks = this.state.newPurchases;
+            listArtworks =  this.props.newPurchases;
+            currentArtworkId = parseInt(this.state.currentPurchaseId);
         }
 
-        if (currentArtwork.index === listArtworks.length - 1) {
-            clearInterval(this.artworkInterval);
+        console.log('listArtworks = ', listArtworks);
+        console.log('currentArtworkId = ', currentArtworkId);
+
+        if ( currentArtworkId === listArtworks.length - 1 ) {
+            clearInterval( this.artworkInterval );
             this.hideModal();
         } else {
             let nextArtwork;
-            let remainingIds = listArtworks.length - currentArtwork.index;
-            for (let i = 1; i < remainingIds; i++) {
-                let nextArtworkToCheck = listArtworks.filter(
-                    artwork => artwork.index === currentArtwork.index + i
-                )[0]
+            let remainingIds = listArtworks.length - currentArtworkId;
+            let nextId = 0;
+            for (let i = 0; i < remainingIds; i++) {
+                let nextArtworkToCheck = listArtworks[currentArtworkId + i];
                 if (nextArtworkToCheck.visited === false) {
                     nextArtwork = nextArtworkToCheck;
                     break;
                 }
+                nextId += 1;
             }
 
-            if (!nextArtwork) {
-                clearInterval(this.artworkInterval);
+            if ( !nextArtwork ) {
+                clearInterval( this.artworkInterval );
                 this.hideModal();
             } else {
-                this.props.onSetEventVisited(eventType, nextArtwork.index);
-                if (eventType === 'Creation') {
+                this.props.onSetEventVisited( eventType, nextArtwork.index );
+                if ( eventType === 'Creation' ) {
                     this.setState({ 
+                        currentCreationId: currentArtworkId + nextId,
                         currentCreation: nextArtwork
                     });
                 } else if (eventType === 'Purchase') {
                     this.setState({ 
+                        currentPurchaseId: currentArtworkId + nextId,
                         currentPurchase: nextArtwork
                     });
                 }
@@ -98,26 +110,27 @@ class Histories extends React.Component {
     }
 
     imageClickedHandler = ( artwork, type ) => {
-        // console.log('[imageClickedHandler] artwork = ', artwork);
-        // console.log('   type = ', type);
-
+        console.log('clicked artwork.index = ', artwork.index);
+        console.log('listIndex = ', artwork.listIndex);
         if (type === 'Creation') {
             this.setState({
-                visitingArtworks: true, currentCreation: artwork
+                visitingArtworks: true, 
+                currentCreationId: artwork.listIndex, 
+                currentCreation: artwork
             });
         } else if (type === 'Purchase') {
             this.setState({
-                visitingArtworks: true, currentPurchase: artwork
+                visitingArtworks: true, 
+                currentPurchaseId: artwork.listIndex, 
+                currentPurchase: artwork
             });
         }
 
         if ( artwork.visited === true ) {
-            setTimeout(() => {
-                this.hideModal();
-            }, 5000);
+            setTimeout(() => { this.hideModal(); }, 5000);
         } else {
-            this.props.onSetEventVisited(type, artwork.index);
-            this.artworkInterval = setInterval(this.changeVisitingArtwork, 5000);
+            this.props.onSetEventVisited( type, artwork.index );
+            this.artworkInterval = setInterval( this.changeVisitingArtwork, 5000 );
         }
 
     }
@@ -125,6 +138,7 @@ class Histories extends React.Component {
     render() {
         // creation events
         let renderedNewCreations = <Spinner />;
+
         if ( 
             !this.props.fetchingEvents && 
             this.props.newCreations && this.props.newCreations.length > 0
@@ -138,7 +152,7 @@ class Histories extends React.Component {
                 }
                 return (
                     <li key={artwork.index} onClick={
-                        () => {this.imageClickedHandler(artwork, 'Creation')}
+                        () => { this.imageClickedHandler(artwork, 'Creation') }
                     }>
                         <img src={src} alt={artwork.description} className={historyClass}/> 
                     </li>
@@ -152,6 +166,16 @@ class Histories extends React.Component {
                 No events yet! :(
             </div>
         }
+        
+        if (
+            !this.props.fetchingEvents && 
+            this.props.activeUserInfo.public.following && 
+            this.props.activeUserInfo.public.following.length > 0
+        ) {
+            renderedNewCreations = <div className={classes.EmptyHistories}>
+                Follow some profiles to see events.
+            </div>
+        }
 
         // purchase events
         let renderedNewPurchases = <Spinner />;
@@ -163,7 +187,7 @@ class Histories extends React.Component {
             renderedNewPurchases = newPurchasesByVisited.map(artwork => {
                 let src = 'https://ipfs.io/ipfs/' + artwork.IPFShash;
                 let historyClass = classes.NotVisited;
-                if (artwork.visited) {
+                if ( artwork.visited ) {
                     historyClass = classes.Visited;
                 }
                 return (
@@ -181,18 +205,27 @@ class Histories extends React.Component {
             renderedNewPurchases = <div className={classes.EmptyHistories}>
                 No events yet! :(
             </div>
+        } 
+        
+        if (
+            !this.props.fetchingEvents && 
+            this.props.activeUserInfo.public.following && 
+            this.props.activeUserInfo.public.following.length > 0
+        ) {
+            renderedNewCreations = <div className={classes.EmptyHistories}>
+                Follow some profiles to see events.
+            </div>
         }
 
         let modal;
         if ( this.state.visitingArtworks ) {
             modal = <Modal 
-                show={this.state.visitingArtworks} 
-                modalClosed={this.hideModal}
-            >
+                show={ this.state.visitingArtworks } 
+                modalClosed={this.hideModal}>
                 <LoadedHistory 
-                    type={this.state.currentCreation ? 'Creation' : 'Purchase'} 
+                    type={this.state.currentCreationId !== null ? 'Creation' : 'Purchase'} 
                     artwork={
-                        this.state.currentCreation
+                        this.state.currentCreationId !== null
                         ? this.state.currentCreation
                         : this.state.currentPurchase
                     }
@@ -231,8 +264,10 @@ const mapStateToProps = state => {
         // web3 contract
         contract: state.web3Objects.contract,
         // firebase profile info
-        loadingFirebase: state.firebaseProfile.loading,
-        profileInfo: state.firebaseProfile.profileInfo,
+        activeUser: state.firebaseProfile.activeUser,
+        activeUserInfo: state.firebaseProfile.activeUserInfo,
+        fetchingActiveUser: state.firebaseProfile.fetchingActiveUser,
+        errorFetchingActiveUser: state.firebaseProfile.errorFetchingActiveUser,
         // events
         newCreations: state.contractEvents.newCreations,
         newPurchases: state.contractEvents.newPurchases,
@@ -241,8 +276,8 @@ const mapStateToProps = state => {
 };
 
 const mapDispatchToProps = dispatch => ({
-    onFetchEvents: ( contract, following ) => dispatch(
-        actions.fetchEvents(contract, following)
+    onFetchEvents: ( contract, following, eventType ) => dispatch(
+        actions.fetchEvents(contract, following, eventType)
     ),
     onSetEventVisited: ( eventType, artworkId ) => dispatch(
         actions.setEventVisited(eventType, artworkId)
