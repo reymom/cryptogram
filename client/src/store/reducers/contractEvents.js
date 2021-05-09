@@ -7,36 +7,57 @@ import {
 
 const initialState = {
     newCreations: [],
+    fetchingCreations: false,
     newPurchases: [],
-    fetchingEvents: false
+    fetchingPurchases: false
 }
 
+const clearEventsData = ( state, ) => {
+    return updateObject( state, initialState );
+};
+
 const fetchEventsStart = ( state, action ) => {
-    return updateObject( state, { fetchingEvents: true } );
+    let object;
+    if ( action.eventName === 'newArtwork' ) {
+        object = { fetchingCreations: true }
+    } else if (action.eventName === 'artworkBought') {
+        object = { fetchingPurchases: true }
+    }
+
+    return updateObject( state, object );
 };
 
 const fetchEventsSuccess = ( state, action ) => {
-    return updateObject( state, {
-        newCreations: action.newCreations,
-        newPurchases: action.newPurchases,
-        fetchingEvents: false
-    } );
+    let object;
+    if ( action.eventName === 'newArtwork' ) {
+        object = { newCreations: action.events, fetchingCreations: false }
+    } else if ( action.eventName === 'artworkBought' ) {
+        object = { newPurchases: action.events, fetchingPurchases: false }
+    }
+    return updateObject( state, object );
 };
 
 const fetchEventsFail = ( state, action ) => {
-    return updateObject( state, { fetchingEvents: false } );
+    let object;
+    if ( action.eventName === 'newArtwork' ) {
+        object = { fetchingCreations: false }
+    } else if ( action.eventName === 'artworkBought' ) {
+        object = { fetchingPurchases: false }
+    }
+    return updateObject( state, object );
 };
 
 const setEventVisited = ( state, action ) => {
     if (action.eventName === 'Creation') {
-        return updateVisitedCreations( state, action.artworkIdToUpdate);
+        return updateVisitedCreations( state, action.artworkIdToUpdate );
     } else if (action.eventName === 'Purchase') {
-        return updateVisitedPurchases( state, action.artworkIdToUpdate);
+        return updateVisitedPurchases( state, action.artworkIdToUpdate );
     }
 }
 
 const reducer = ( state = initialState, action ) => {
     switch ( action.type ) {
+        case actionTypes.CLEAR_EVENTS_DATA: return clearEventsData( state, action );
         case actionTypes.FETCH_EVENTS_START: return fetchEventsStart( state, action );
         case actionTypes.FETCH_EVENTS_SUCCESS: return fetchEventsSuccess( state, action );
         case actionTypes.FETCH_EVENTS_FAIL: return fetchEventsFail( state, action );

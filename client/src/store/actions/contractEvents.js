@@ -1,92 +1,98 @@
 import * as actionTypes from './actionTypes';
 
-export const fetchEventsStart = () => {
-    return {
-        type: actionTypes.FETCH_EVENTS_START,
-    };
+export const clearEventsData = () => {
+    return { type: actionTypes.CLEAR_EVENTS_DATA, };
 };
 
-export const fetchEventsSuccess = ( creationEvents, purchaseEvents ) => {
+export const fetchEventsStart = ( eventName ) => {
+    return { type: actionTypes.FETCH_EVENTS_START, eventName: eventName };
+};
+
+export const fetchEventsSuccess = ( events, eventName ) => {
     return {
         type: actionTypes.FETCH_EVENTS_SUCCESS,
-        newCreations: creationEvents,
-        newPurchases: purchaseEvents
+        events: events,
+        eventName: eventName
     };
 };
 
-export const fetchEventsFail = () => {
-    return {
-        type: actionTypes.FETCH_EVENTS_FAIL,
-    };
+export const fetchEventsFail = ( eventName ) => {
+    return { type: actionTypes.FETCH_EVENTS_FAIL, eventName: eventName };
 };
 
-export const fetchEvents = ( contract, following ) => {
-    return async (dispatch) => {
-        dispatch( fetchEventsStart() );
-        await contract.getPastEvents('allEvents', { 
-            filter: {
-                creator: following,
-                seller: following,
-                collector: following
-            },
-            fromBlock: 1
-        }, (error, events) => {
-                if (error) {
-                    dispatch( fetchEventsFail( ) );
-                }
+export const fetchEvents = ( contract, following, eventName ) => {
+    return dispatch => {
+        dispatch( fetchEventsStart( eventName ) );
+        // console.log('following = ', following, 'eventName = ', eventName);
 
-                if (events && events.length > 0) {
-                    // get visited artworks in localstorage, convert to array of ints
-                    let visitedCreationIds = localStorage.getItem('visitedCreationIds');
-                    let visitedPurchaseIds = localStorage.getItem('visitedPurchaseIds');
-                    if (visitedCreationIds) {
-                        visitedCreationIds = visitedCreationIds.split(',').map(x => parseInt(x));
-                    } else if (visitedPurchaseIds) {
-                        visitedPurchaseIds = visitedPurchaseIds.split(',').map(x => parseInt(x));
+        let filterDict;
+        if ( eventName === 'newArtwork' ) {
+            filterDict = { creator: following };
+        } else if ( eventName === 'artworkBought' ) {
+            filterDict = { seller: following, collector: following };
+        } else { dispatch( fetchEventsFail( ) ); }
+
+        contract.getPastEvents(eventName, { filter: filterDict, fromBlock: 1 }, ( error, events ) => {
+                if ( error ) { dispatch( fetchEventsFail( eventName ) ); }
+
+                if ( events && events.length > 0 ) {
+                    let visitedIds;
+                    if ( eventName === 'newArtwork' ) {
+                        visitedIds = localStorage.getItem('visitedCreationIds');
+                    } else if ( eventName === 'artworkBought' ) {
+                        visitedIds = localStorage.getItem('visitedPurchaseIds');
                     }
-                    // console.log('visitedCreationIds = ', visitedCreationIds);
-                    // console.log('visitedPurchaseIds = ', visitedPurchaseIds);
+
+                    if ( visitedIds ) { visitedIds = visitedIds.split(','); }
+
+                    // console.log('visitedIds = ', visitedIds);
 
                     // reconstruct objects to present artworks in histories
-                    let newCreations = [];
-                    let newPurchases = [];
+                    let newEvents = [];
                     for ( var i = 0; i < events.length; i++ ) {
+                        // console.log('i = ', i, 'event[i] = ', events[i]);
                         let event = events[i];
-                        if (event.event === 'newArtwork') {
+                        if ( event.event === eventName ) {
                             let visited = false;
-                            if ( visitedCreationIds && visitedCreationIds.includes(event.returnValues.artworkId) ) {
+                            if ( visitedIds && visitedIds.includes(event.returnValues.artworkId) ) {
                                 visited = true;
                             }
-                            newCreations.push({
-                                index: event.returnValues.artworkId,
-                                creator: event.returnValues.creator,
-                                description: event.returnValues.description,
-                                tag: event.returnValues.tag,
-                                IPFShash: event.returnValues.IPFShash,
-                                initialPrice: event.returnValues.initialPrice,
-                                participationPercentage: event.returnValues.participationPercentage,
-                                visited: visited
-                            });
-                        } else if (event.event === 'artworkBought') {
-                            let visited = false;
-                            if ( visitedPurchaseIds && visitedPurchaseIds.includes(event.returnValues.artworkId) ) {
-                                visited = true;
+                            let artworkRenderedDict;
+                            let index = event.returnValues.artworkId;
+                            let IPFShash = event.returnValues.IPFShash;
+                            let listIndex = i.toString();
+                            if (eventName === 'newArtwork') {
+                                artworkRenderedDict = {
+                                    index: index,
+                                    listIndex: listIndex,
+                                    creator: event.returnValues.creator,
+                                    description: event.returnValues.description,
+                                    tag: event.returnValues.tag,
+                                    IPFShash: IPFShash,
+                                    initialPrice: event.returnValues.initialPrice,
+                                    participationPercentage: event.returnValues.participationPercentage,
+                                    visited: visited
+                                }
+                            } else if (eventName === 'artworkBought') {
+                                artworkRenderedDict = {
+                                    index: index,
+                                    listIndex: listIndex,
+                                    seller: event.returnValues.seller,
+                                    collector: event.returnValues.collector,
+                                    purchasePrice: event.returnValues.purchasePrice,
+                                    IPFShash: IPFShash,
+                                    visited: visited
+                                }
                             }
-                            newPurchases.push({
-                                index: event.returnValues.artworkId,
-                                seller: event.returnValues.seller,
-                                collector: event.returnValues.collector,
-                                purchasePrice: event.returnValues.purchasePrice,
-                                IPFShash: event.returnValues.IPFShash,
-                                visited: visited
-                            });
+
+                            if (artworkRenderedDict) { newEvents.push(artworkRenderedDict); }
                         }
                     }
-                    // console.log('newCreations = ', newCreations);
-                    // console.log('newPurchases = ', newPurchases);
-                    dispatch( fetchEventsSuccess( newCreations, newPurchases ) );
+
+                    // console.log('newEvents = ', newEvents);
+                    dispatch( fetchEventsSuccess( newEvents, eventName ) );
                 } else {
-                    dispatch( fetchEventsSuccess( [], [] ) );
+                    dispatch( fetchEventsSuccess( [], eventName ) );
                 }
             }
         );
@@ -98,9 +104,10 @@ export const setEventVisited = ( eventName, artworkId ) => {
     let storageId = 'visited' + eventName + 'Ids'
 
     let stored = localStorage.getItem(storageId);
-    if (stored && stored !== '' ) {
+    if ( stored && stored !== '' && !stored.split(',').includes(artworkId)) {
         prevStorage = localStorage.getItem(storageId) + ',';
     }
+
     localStorage.setItem(
         storageId,
         prevStorage + artworkId.toString()
