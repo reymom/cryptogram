@@ -1,0 +1,30 @@
+.GasFeeModalOptions {
+    display: flex;
+    justify-content: center;
+    padding: 10px;
+    gap: 10px;
+}
+
+.GasFeeOption {
+    cursor: pointer;
+    padding: 30px;
+    text-align: center;
+    border: 1px solid rgb(223, 202, 202);
+    border-radius: 10px;
+}
+
+.GasFeeOption:hover {
+    background-color: rgb(194, 166, 166);
+}
+
+.GasFeeOptionActive {
+    background-color: rgb(161, 95, 78);
+}
+
+.GasFeeOptionActive:hover {
+    background-color: rgb(161, 95, 78);
+}
+
+.OptionDetails {
+    text-align: center;
+}

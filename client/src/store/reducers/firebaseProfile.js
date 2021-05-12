@@ -6,8 +6,8 @@ const initialState = {
     registering: false,
     registered: false,
     errorRegisterWallet: null,
-    // FETCH GAS
-    gasStation: null,
+    // ETHEREUM INFO
+    ethereumInfo: null,
     // FETCH ACTIVE USER
     activeUser: null,
     activeUserInfo: null,
@@ -45,17 +45,24 @@ const registerWalletFail = ( state, action ) => {
     } );
 };
 
-// FETCH GAS
-const fetchGasSuccess = ( state, action ) => {
-    return updateObject( state, { gasStation: action.gasStation } );
+// FETCH ETHEREUM INFO
+const fetchEthereumInfoSuccess = ( state, action ) => {
+    return updateObject( state, { 
+        ethereumInfo: {
+            conversion: action.conversion,
+            gasStation: action.gasStation 
+        }
+    } );
 }
 
-const fetchGasFail = ( state, ) => {
+const fetchEthereumInfoFail = ( state, ) => {
     return updateObject( state, { 
-        gasStation: {
-            fast: { gasPrice: "72000000000"},
-            fastest: { gasPrice: "79000000000"},
-            safeLow: { gasPrice: "60000000000"}
+        ethereumInfo: {
+            gasStation: {
+                fast: { gasPrice: "72000000000"},
+                fastest: { gasPrice: "79000000000"},
+                safeLow: { gasPrice: "60000000000"}
+            }
         }
     } );
 }
@@ -212,8 +219,8 @@ const reducer = ( state = initialState, action ) => {
         case actionTypes.REGISTER_WALLET_SUCCESS: return registerWalletSuccess( state, action );
         case actionTypes.REGISTER_WALLET_FAIL: return registerWalletFail( state, action );
         // FETCH GAS
-        case actionTypes.FETCH_GAS_SUCCESS: return fetchGasSuccess( state, action );
-        case actionTypes.FETCH_GAS_FAIL: return fetchGasFail( state, action );
+        case actionTypes.FETCH_ETHEREUM_INFO_SUCCESS: return fetchEthereumInfoSuccess( state, action );
+        case actionTypes.FETCH_ETHEREUM_INFO_FAIL: return fetchEthereumInfoFail( state, action );
         // FETCH ACTIVE USER DATA
         case actionTypes.FETCH_ACTIVE_USER_DATA_START: return fetchActiveUserDataStart( state, action );
         case actionTypes.FETCH_ACTIVE_USER_DATA_SUCCESS: return fetchActiveUserDataSuccess( state, action );

@@ -5,11 +5,26 @@ import Backdrop from '../UI/Backdrop/Backdrop';
 import Button from '../UI/Button/Button';
 import Aux from '../../hoc/Aux/Aux';
 
-const notifications = ( props ) => {
+const notifications = ( props ) => {    
     let attachedClasses = [classes.SideDrawer, classes.Close];
     if ( props.open ) {
         attachedClasses = [classes.SideDrawer, classes.Open];
     }
+
+    let claimingFunds;
+    if (props.claimingFunds) {
+        claimingFunds = <div className={classes.ClaimingFunds}>
+            Verifying transaction, please wait...
+        </div>
+    }
+
+    let errorClaimFunds;
+    if (props.errorClaimFunds) {
+        errorClaimFunds = <div className={classes.ClaimingFunds}>
+            UPS, could not complete the transaction.
+        </div>
+    }
+    
 
     return (
         <Aux>
@@ -25,19 +40,28 @@ const notifications = ( props ) => {
                     </a>
                 </div>
                 <hr className={classes.Hr}/>
+                <Button 
+                    btnType="Register"
+                    clicked={ props.buyEtherClicked } 
+                >
+                    Buy ether
+                </Button>
                 <div className={classes.Balances}>
                     <div>Balance</div><span>{ props.ethBalance } eth</span>
                     <div>Available Funds</div><span>{ props.availableFunds } eth</span>
                 </div>
                 <Button 
                     btnType="Login" 
-                    clicked={props.clicked} 
+                    clicked={ props.claimRewardsClicked } 
                     disabled={
-                        props.availableFunds === 0 || props.ethBalance === 0
+                        props.availableFunds.toString() === "0" || 
+                        props.ethBalance.toString() === "0"
                     }
                 >
                     Get funds
                 </Button>
+                { claimingFunds }
+                { errorClaimFunds }
                 <hr className={classes.Hr}/>
                 <div className={classes.NotificationsContainer}>
                     <h2>Notifications</h2>

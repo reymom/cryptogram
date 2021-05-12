@@ -45,8 +45,8 @@
 
 .Balances {
     width: 80%;
-    margin: auto;
-    margin-bottom: 10px;
+    margin: 10px auto;
+    /* margin-bottom: 10px; */
     display: grid;
     grid-template-columns: 4fr 3fr;
     text-align: right;

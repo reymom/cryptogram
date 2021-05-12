@@ -123,15 +123,15 @@ class CreateToken extends React.Component {
         if (file.path) {
             
             let gas = 21000; // before 6721975
-            let gasPrice = this.props.gasStation.fast.gasPrice; // before 10000000000
+            let gasPrice = this.props.ethereumInfo.gasStation.fast.gasPrice; // before 10000000000
             let gasLimit = 865000; // 
             if ( this.props.web3mode === 'custom' ) {
                 if ( this.state.artworkForm.gasFee.value === 'fastest' ) {
                     // gas = 6721975;
-                    gasPrice = this.props.gasStation.fastest.gasPrice;
+                    gasPrice = this.props.ethereumInfo.gasStation.fastest.gasPrice;
                 } else if ( this.state.artworkForm.gasFee.value === 'safeLow') {
                     // gas = 6721975;
-                    gasPrice = this.props.gasStation.safeLow.gasPrice;
+                    gasPrice = this.props.ethereumInfo.gasStation.safeLow.gasPrice;
                 }
             }
 
@@ -172,35 +172,41 @@ class CreateToken extends React.Component {
             form = (
                 <form onSubmit={this.createArtworkHandler}>
                     { formElementsArray.map(formElement => {
-                        if (formElement.id === 'gasFee') {
-                            return (
-                                <div className={classes.GasFeeModalOptions} key={formElement.id}>
-                                    { formElement.config.elementConfig.options.map(option => (
-                                        <div 
-                                            key={option.value} 
-                                            value={option.value}
-                                            className={
-                                                [
-                                                    classes.GasFeeOption,
-                                                    formElement.config.value === option.value ?
-                                                    classes.GasFeeOptionActive : ''
-                                                ].join(" ")
-                                            }
-                                            onClick={ () => this.inputChangedHandler( option.value, formElement.id ) }
-                                        >
-                                            <h1>{ option.displayValue }</h1>
-                                            <div className={classes.OptionDetails}>
-                                                <p>
-                                                    { 
-                                                        parseInt(this.props.gasStation[option.value].gasPrice) / 1000000000
-                                                    } Gwei
-                                                </p>
-                                                <p>{ this.props.gasStation[option.value].time } seconds on average</p>
-                                            </div>   
-                                        </div>
-                                    )) }
-                                </div>
-                            );
+                        if ( formElement.id === 'gasFee' ) {
+                            if ( this.props.web3mode === 'custom' ) {
+                                return (
+                                    <div className={classes.GasFeeModalOptions} key={formElement.id}>
+                                        { formElement.config.elementConfig.options.map(option => (
+                                            <div 
+                                                key={option.value} 
+                                                value={option.value}
+                                                className={
+                                                    [
+                                                        classes.GasFeeOption,
+                                                        formElement.config.value === option.value ?
+                                                        classes.GasFeeOptionActive : ''
+                                                    ].join(" ")
+                                                }
+                                                onClick={ () => this.inputChangedHandler( option.value, formElement.id ) }
+                                            >
+                                                <h1>{ option.displayValue }</h1>
+                                                <div className={classes.OptionDetails}>
+                                                    <p>
+                                                        { 
+                                                            parseInt(
+                                                                this.props.ethereumInfo.gasStation[option.value].gasPrice
+                                                            ) / 1000000000
+                                                        } Gwei
+                                                    </p>
+                                                    <p>
+                                                        { this.props.ethereumInfo.gasStation[option.value].time } seconds on average
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        )) }
+                                    </div>
+                                );
+                            } else return '';
                         }
                         return (
                             <Input
@@ -245,7 +251,6 @@ class CreateToken extends React.Component {
             <Aux>
                 { imageLoaded }
                 { form }
-                {/* { creating } */}
                 { IPFSError }
             </Aux>
         );
@@ -257,7 +262,7 @@ const mapStateToProps = state => {
         /* -----------------
           FIREBASE PROFILE
         ----------------- */
-        gasStation: state.firebaseProfile.gasStation,
+        ethereumInfo: state.firebaseProfile.ethereumInfo,
 
         /* -------------
           WEB3 OBJECTS

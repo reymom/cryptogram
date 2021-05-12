@@ -12,25 +12,12 @@ import classes from './LoadedArtwork.module.css';
 import emptyProfilePic from '../../assets/persona.png';
 
 import Aux from '../../hoc/Aux/Aux';
-import Button from '../../components/UI/Button/Button';
 import Spinner from '../../components/UI/Spinner/Spinner';
-import Modal from '../../components/UI/Modal/Modal';
+import GasFeeModal from '../../hoc/GasFeeModal/GasFeeModal';
 
 class LoadedArtwork extends React.Component {
     state = { 
         showGasFeeModal: false,
-        gasFee: {
-            elementType: 'select',
-            elementConfig: { 
-                type: 'select',
-                options: [
-                    { value: 'fastest', displayValue: 'Fastest' },
-                    { value: 'fast', displayValue: 'Fast' },
-                    { value: 'safeLow', displayValue: 'Cheapest' }
-                ]
-            },
-            value: 'fast',
-        },
         expirationTime: 30,
         supporting: false,
         supportError: false,
@@ -81,12 +68,6 @@ class LoadedArtwork extends React.Component {
     }
 
     goBackHandler() { this.props.history.goBack(); }
-
-    inputChangedHandler = ( value ) => {
-        this.setState({  
-            gasFee: { ...this.state.gasFee, value: value } 
-        });
-    }
 
     hideGasFeeModal = () => {
         this.setState({ 
@@ -141,17 +122,17 @@ class LoadedArtwork extends React.Component {
         }
     }
 
-    supportArtworkHandler = () => {
+    supportArtworkHandler = ( gasValue ) => {
         let gas = 21000; // before 6721975
-        let gasPrice = this.props.gasStation.fast.gasPrice; // before 10000000000
+        let gasPrice = this.props.ethereumInfo.gasStation.fast.gasPrice; // before 10000000000
         let gasLimit = 865000; // 
         if ( this.props.web3mode === 'custom' ) {
-            if ( this.state.gasFee.value === 'fastest' ) {
+            if ( gasValue === 'fastest' ) {
                 // gas = 6721975;
-                gasPrice = this.props.gasStation.fastest.gasPrice;
-            } else if ( this.state.gasFee.value === 'safeLow') {
+                gasPrice = this.props.ethereumInfo.gasStation.fastest.gasPrice;
+            } else if ( gasValue === 'safeLow') {
                 // gas = 6721975;
-                gasPrice = this.props.gasStation.safeLow.gasPrice;
+                gasPrice = this.props.ethereumInfo.gasStation.safeLow.gasPrice;
             }
         }
 
@@ -197,19 +178,19 @@ class LoadedArtwork extends React.Component {
         }
     }
 
-    buyArtworkHandler = () => {
+    buyArtworkHandler = ( gasValue ) => {
         console.log('[buyArtworkHandler]');
 
         let gas = 21000; // before 6721975
-        let gasPrice = this.props.gasStation.fast.gasPrice; // before 10000000000
+        let gasPrice = this.props.ethereumInfo.gasStation.fast.gasPrice; // before 10000000000
         let gasLimit = 865000; // 
         if ( this.props.web3mode === 'custom' ) {
-            if ( this.state.gasFee.value === 'fastest' ) {
+            if ( gasValue === 'fastest' ) {
                 // gas = 6721975;
-                gasPrice = this.props.gasStation.fastest.gasPrice;
-            } else if ( this.state.gasFee.value === 'safeLow') {
+                gasPrice = this.props.ethereumInfo.gasStation.fastest.gasPrice;
+            } else if ( gasValue === 'safeLow') {
                 // gas = 6721975;
-                gasPrice = this.props.gasStation.safeLow.gasPrice;
+                gasPrice = this.props.ethereumInfo.gasStation.safeLow.gasPrice;
             }
         }
 
@@ -218,13 +199,8 @@ class LoadedArtwork extends React.Component {
             this.props.web3mode === 'custom', this.props.web3, this.props.wallet,
             gas, gasPrice, gasLimit
         );
-        this.props.onFetchAvailableFunds(
-            this.props.activeAddress,
-            this.props.web3,
-            this.props.contract.methods
-        );
 
-        this.hideGasFeeModal()
+        this.hideGasFeeModal();
     }
 
     render() {
@@ -330,64 +306,6 @@ class LoadedArtwork extends React.Component {
                 </div>
         }
 
-        let gasFeeModal;
-        if ( this.state.showGasFeeModal ) {
-            let formElement = this.state.gasFee;
-            gasFeeModal = 
-                <Modal 
-                    show={ this.state.showGasFeeModal }
-                    modalClosed={this.hideGasFeeModal}>
-                        <h1 style={{textAlign:"center"}}>Gas price</h1>
-                        <div>
-                            <div className={classes.GasFeeModalOptions}>
-                                {formElement.elementConfig.options.map(option => (
-                                    <div 
-                                        key={option.value} 
-                                        value={option.value}
-                                        className={
-                                            [
-                                                classes.GasFeeOption,
-                                                formElement.value === option.value ?
-                                                classes.GasFeeOptionActive : ''
-                                            ].join(" ")
-                                        }
-                                        onClick={ () => this.inputChangedHandler( option.value ) }
-                                    >
-                                        <h1>{ option.displayValue }</h1>
-                                        <div className={classes.OptionDetails}>
-                                            <p>
-                                                {
-                                                    parseInt(this.props.gasStation[option.value].gasPrice) / 1000000000 
-                                                } Gwei
-                                            </p>
-                                            <p>{ this.props.gasStation[option.value].time } seconds on average</p>
-                                        </div>   
-                                    </div>
-                                ))}
-                            </div>
-
-                            <div className={classes.CenterButtons}>
-                                <Button 
-                                    btnType="Success"
-                                    clicked={
-                                        this.state.supporting ? 
-                                        this.supportArtworkHandler : 
-                                        (this.state.purchasing && this.buyArtworkHandler)
-                                    }
-                                >
-                                    ACCEPT
-                                </Button>
-                                <Button 
-                                    type="button" 
-                                    btnType="Danger" 
-                                    clicked={this.hideGasFeeModal}>
-                                        CANCEL
-                                </Button>
-                            </div>
-                        </div>
-                </Modal>
-        }
-
         // PROCESSING SUPPORT OR PURCHASE
         let processingTransaction;
         if ( this.props.processingSupport | this.props.processingPurchase ) {
@@ -452,9 +370,20 @@ class LoadedArtwork extends React.Component {
                         color='rgb(5, 15, 44)' />
                 </div>
                 { renderedArtwork }
-
-                { gasFeeModal }
-
+                { 
+                    (this.props.ethereumInfo.gasStation && this.state.showGasFeeModal ) ? 
+                        <GasFeeModal 
+                            submitClicked={ 
+                                ( gasValue ) => { 
+                                    this.state.supporting ? 
+                                    this.supportArtworkHandler( gasValue ) :
+                                    (this.state.purchasing && this.buyArtworkHandler(gasValue))
+                                }
+                            }
+                            cancelClicked={ this.hideGasFeeModal }
+                            showGasFeeModal={ this.state.showGasFeeModal }
+                        /> : ''
+                }
                 { processingTransaction }
                 { supportError }
                 { purchaseError }
@@ -474,7 +403,7 @@ const mapStateToProps = state => {
         /* -----------------
           FIREBASE PROFILE
         ----------------- */
-        gasStation: state.firebaseProfile.gasStation,
+        ethereumInfo: state.firebaseProfile.ethereumInfo,
         activeUser: state.firebaseProfile.activeUser,
         activeUserInfo: state.firebaseProfile.activeUserInfo,
         nextProfile: state.firebaseProfile.nextProfile,

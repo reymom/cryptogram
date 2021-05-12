@@ -46,27 +46,30 @@ export const registerWallet = ( seeds, address, userId, idToken ) => {
 };
 
 // FETCH GAS STATION
-export const fetchGasSuccess = ( gasStation ) => {
+export const fetchEthereumInfoSuccess = ( conversion, gasStation ) => {
     return {
-        type: actionTypes.FETCH_GAS_SUCCESS,
+        type: actionTypes.FETCH_ETHEREUM_DATA_SUCCESS,
+        conversion: conversion,
         gasStation: gasStation
     }
 }
 
-export const fetchGasFail = () => {
-    return { type: actionTypes.FETCH_GAS_FAIL }
+export const fetchEthereumInfoFail = () => {
+    return { type: actionTypes.FETCH_ETHEREUM_DATA_FAIL }
 }
 
-export const fetchGas = ( idToken ) => {
+export const fetchEthereumInfo = ( idToken ) => {
     return dispatch => {
-        axiosProfile.get( '/gasStation.json?auth=' + idToken)
+        axiosProfile.get( '/ethereum.json?auth=' + idToken)
             .then( response => {
-                let gasStation = response.data;
-                dispatch( fetchGasSuccess( gasStation ) );
+                dispatch( fetchEthereumInfoSuccess( 
+                    response.data.conversion,
+                    response.data.gasStation 
+                ) );
             } )
             .catch( error => {
                 console.log('error = ', error);
-                dispatch( fetchGasFail() );
+                dispatch( fetchEthereumInfoFail() );
             } );
     };
 }
@@ -92,7 +95,7 @@ export const fetchActiveUserDataFail = ( error ) => {
 export const fetchActiveUserData = ( userId, idToken ) => {
     return dispatch => {
         dispatch( fetchActiveUserDataStart( userId ) );
-        dispatch( fetchGas(idToken) );
+        dispatch( fetchEthereumInfo( idToken) );
         const getPubicData = axiosProfile.get(
             '/profile/' + userId + '/publicInfo.json?auth=' + idToken
         );
@@ -105,7 +108,7 @@ export const fetchActiveUserData = ( userId, idToken ) => {
             dispatch( fetchActiveUserDataSuccess( userId, responses[0].data, responses[1].data ) );
             
             let web3mode = 'custom';
-            if ( responses[1].data.myEthereum === 'browser' ) { web3mode = 'browser'; }
+            if (responses[1].data.myEthereum === 'browser') web3mode = 'browser';
             let seeds = responses[1].data.seeds;
             dispatch( getWeb3Objects( web3mode, true, seeds ) );
         })).catch(errors => {
