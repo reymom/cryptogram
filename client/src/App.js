@@ -23,17 +23,25 @@ class App extends React.Component {
         console.log('[componentDidUpdate] App.js');
         // ACCOUNT INFO
         if ( 
-            this.props.isAuthenticated && !prevProps.contract &&
-            this.props.web3mode && this.props.web3 && this.props.contract
+            (this.props.isAuthenticated && !prevProps.contract &&
+            this.props.web3mode && this.props.web3 && this.props.contract)
+            ||
+            (
+                this.props.isAuthenticated && this.props.web3 && this.props.contract &&
+                this.props.web3mode === 'browser' && 
+                !prevProps.accountsActive && this.props.accountsActive
+            )
         ) {
+            console.log('[componentDidUpdate] inside if')
             let account;
             if (this.props.web3mode === 'browser' && this.props.accountsActive) {
+                console.log('[componentDidUpdate] inside custom, accountsActive = ', this.props.accountsActive)
                 account = this.props.accountsActive[0];
             } else if (this.props.web3mode === 'custom' && this.props.addressActive) {
                 account = this.props.addressActive;
             }
 
-            console.log('this.props.addressActive = ', account);
+            console.log('[componentDidUpdate], this.props.addressActive = ', account);
 
             if ( account ) {
                 this.props.onFetchAddressActiveInfo(

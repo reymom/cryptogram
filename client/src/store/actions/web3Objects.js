@@ -19,7 +19,11 @@ export const injectWeb3Start = () => {
 };
 
 export const injectWeb3Success = ( web3, web3mode ) => {
-    return { type: actionTypes.INJECT_WEB3_SUCCESS, web3: web3, web3mode: web3mode };
+    return { 
+        type: actionTypes.INJECT_WEB3_SUCCESS, 
+        web3: web3, 
+        web3mode: web3mode 
+    };
 };
 
 export const injectWeb3Fail = ( error ) => {
@@ -29,11 +33,11 @@ export const injectWeb3Fail = ( error ) => {
 // DISPATCH WEB3 INJECTION AND LATER CONTRACT AND ADDRESSES
 export const getWeb3Objects = ( web3mode, getAccounts, seeds ) => {
     return async (dispatch) => {
-        // console.log('[getWeb3Objects]');
+        console.log('[getWeb3Objects]');
         dispatch( injectWeb3Start( ) );
         try {
-
             const web3 = await getWeb3( web3mode );
+            console.log('web3 = ', web3);
             dispatch( injectWeb3Success( web3, web3mode ) );
             dispatch( loadContract( web3 ) );
 
@@ -41,7 +45,8 @@ export const getWeb3Objects = ( web3mode, getAccounts, seeds ) => {
                 if ( web3mode === 'custom' ) {
                     dispatch( getAddressFromSeed(seeds, false, null, null) );
                 } else if ( web3mode === 'browser' ) {
-                    dispatch( getAccountsFromBrowser( web3 ) );
+                    console.log('web3mode = browser');
+                    // dispatch( getAccountsFromBrowser() );
                 }
             }
 
@@ -71,14 +76,14 @@ export const loadContract = ( web3 ) => {
         dispatch( loadContractStart() );
         try {
             const networkId = await web3.eth.net.getId();
-            // console.log('networkId = ', networkId);
+            console.log('networkId = ', networkId);
             const deployedNetwork = Artworks.networks[networkId];
             // console.log('deployedNetwork = ', deployedNetwork);
             const contract = new web3.eth.Contract(
                 Artworks.abi,
                 deployedNetwork && deployedNetwork.address,
             );
-            // console.log('contract = ', contract);
+            console.log('contract = ', contract);
             dispatch( loadContractSuccess(contract) );
         } catch (error) {
             dispatch( loadContractFail(error) );
@@ -100,15 +105,21 @@ export const getAccountsFromBrowserFail = ( error ) => {
     return { type: actionTypes.GET_ACCOUNTS_FROM_BROWSER_FAIL, error: error };
 };
 
-export const getAccountsFromBrowser = ( web3 ) => {
+export const getAccountsFromBrowser = () => {
     return async (dispatch) => {
         dispatch( getAccountsFromBrowserStart() );
         try {
-            const accounts = await web3.eth.getAccounts();
-            // console.log('accounts = ', accounts);
+            console.log("[getAccountsFromBrowser]");
+            // const accounts = await web3.eth.getAccounts();
+            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            console.log('accounts = ', accounts);
+            // window.ethereum.on(
+            //     'accountsChanged', 
+            //     () => { dispatch(getAccountsFromBrowser()) }
+            // );
             dispatch( getAccountsFromBrowserSuccess( accounts ) );
-        } catch (error) {
-            // console.log('error = ', error);
+        } catch ( error ) {
+            console.log('error = ', error);
             dispatch( getAccountsFromBrowserFail( error ) );
         }
     };

@@ -1,14 +1,17 @@
 import * as actionTypes from './actionTypes';
 
-import { sendSignedTransaction } from './artwork';
+import { sendSignedTransaction } from './sendSignedTransaction';
 
 export const clearWeb3AddressData = () => {
     return { type: actionTypes.CLEAR_WEB3ADDRESS_DATA, }
-}
+};
 
 // USER INFO
 export const fetchAddressInfoStart = ( isActiveUser ) => {
-    return { type: actionTypes.FETCH_ADDRESSINFO_START, isActiveUser: isActiveUser };
+    return { 
+        type: actionTypes.FETCH_ADDRESSINFO_START, 
+        isActiveUser: isActiveUser 
+    };
 };
 
 export const fetchAddressInfoSuccess = ( 
@@ -86,7 +89,11 @@ export const fetchAddressInfo = ( web3, userAddress, methods, isActiveUser ) => 
 
 // ETH BALANCE
 export const getBalanceSuccess = ( ethBalance, isActiveUser ) => {
-    return { type: actionTypes.GET_BALANCE, ethBalance: ethBalance, isActiveUser: isActiveUser };
+    return { 
+        type: actionTypes.GET_BALANCE, 
+        ethBalance: ethBalance, 
+        isActiveUser: isActiveUser 
+    };
 };
 
 export const getBalance = ( userAddress, web3, isActiveUser ) => {
@@ -150,11 +157,12 @@ export const claimRewardsFail = ( error ) => {
 export const claimRewards = ( 
     userAddress, contract, web3IsManual, web3, wallet, gas, gasPrice, gasLimit 
 ) => {
-    return async (dispatch) => {
+    return dispatch => {
+        console.log('[claimRewards]');
         dispatch(claimRewardsStart());
 
         if ( !web3IsManual ) {
-            dispatch( claimRewardsWithWeb3Browser( userAddress, contract.methods ) );
+            dispatch( claimRewardsWithWeb3Browser( userAddress, web3, contract.methods ) );
         } else {
             dispatch( claimRewardsWithWeb3Manual(
                 userAddress, contract, web3, wallet, gasPrice, gasLimit
@@ -164,9 +172,9 @@ export const claimRewards = (
 };
 
 // CLAIM WITH WEB3 FROM BROWSER
-export const claimRewardsWithWeb3Browser = ( userAddress, methods ) => {
+export const claimRewardsWithWeb3Browser = ( userAddress, web3, methods ) => {
     return dispatch => {
-        methods.withdrawSupporterFunds(userAddress)
+        methods.withdrawSupporterFunds()
             .send({ 
                 from: userAddress, 
                 // gas: 6721975, 
@@ -175,6 +183,7 @@ export const claimRewardsWithWeb3Browser = ( userAddress, methods ) => {
             .then( response => {
                 console.log('response = ', response);
                 dispatch(claimRewardsSuccess());
+                dispatch(getBalance(userAddress, web3, true));
             })
             .catch( error => {
                 console.log('error = ', error);
@@ -187,7 +196,8 @@ export const claimRewardsWithWeb3Manual = (
     userAddress, contract, web3, wallet, gasPrice, gasLimit
 ) => {
     return dispatch => {
-        const claimRewardsData = contract.methods.withdrawSupporterFunds( userAddress );
+        console.log("[claimRewardsWithWeb3Manual]");
+        const claimRewardsData = contract.methods.withdrawSupporterFunds();
         dispatch( sendSignedTransaction(
             'claim',
             userAddress,

@@ -63,6 +63,7 @@ const getAccountsFromBrowserStart = ( state, ) => {
 };
 
 const getAccountsFromBrowserSuccess = ( state, action ) => {
+    console.log('accounts = ', action.accounts);
     return updateObject( state, { accounts: action.accounts, loadingAccounts: false } );
 };
 

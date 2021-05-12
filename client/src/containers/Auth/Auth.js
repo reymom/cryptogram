@@ -192,7 +192,7 @@ class Auth extends React.Component {
         let myEthereum = 'custom';
         let seeds = '';
         if ( this.state.controls.myEthereum.value === 'browserInjection') {
-            myEthereum = 'browserInjection';
+            myEthereum = 'browser';
         } else if ( this.state.controls.myEthereum.value === 'seed' ) {
             seeds = this.state.controls.seeds.value;
         }
@@ -210,14 +210,22 @@ class Auth extends React.Component {
     render () {
         const formElementsArray = [];
         for ( let key in this.state.controls ) {
-            if (key !== 'repeatPassword' && key !== 'name' && key !== 'myEthereum' && key !== 'seeds') {
+            if (
+                key !== 'repeatPassword' && 
+                key !== 'name' && 
+                key !== 'myEthereum' && 
+                key !== 'seeds'
+            ) {
                 formElementsArray.push( {
                     id: key,
                     config: this.state.controls[key]
                 } )
             } else if ( 
                 !this.state.isLogin && ( key !== 'seeds' ||
-                (key === 'seeds' && this.state.controls['myEthereum'].value === 'seed') )
+                (
+                    key === 'seeds' && 
+                    this.state.controls['myEthereum'].value === 'seed'
+                ) )
             ) {
                 formElementsArray.push( {
                     id: key,

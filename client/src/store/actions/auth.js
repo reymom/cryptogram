@@ -86,9 +86,12 @@ export const auth = ( email, password, isLogin, name, myEthereum, seeds ) => {
                     axios.all([publicPut, privatePut]).then(axios.spread((...responses) => {
                         console.log('responsePublic = ', responses[0]);
                         console.log('responsePrivate = ', responses[1]);
-                        if (myEthereum === 'custom') {
+                        if ( myEthereum === 'custom' ) {
                             dispatch( getAddressFromSeed( seeds, true, userId, idToken ) );
                             dispatch( getWeb3Objects('custom', false, '') );
+                        } else if ( myEthereum === 'browser' ) {
+                            dispatch( getWeb3Objects('browser', true, '') );
+
                         }
                     })).catch(errors => {
                         console.log('errors = ', errors);
