@@ -96,7 +96,7 @@ contract Artworks is ERC721 {
 
     // function withdrawLostFunds() public onlyManager {
     //     get funds blocked in the contract which are not in availableFundsForUser
-    //     ...
+
     //     payable(msg.sender).transfer(address(this).balance);
     // }
 

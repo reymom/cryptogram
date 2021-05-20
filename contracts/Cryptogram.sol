@@ -10,4 +10,8 @@ contract Cryptogram {
     function getCurrentVersion() public view returns(address) {
         return contracts[contracts.length];
     }
+
+    // function createNew() {
+
+    // }
 }

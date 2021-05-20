@@ -87,7 +87,7 @@ contract('Cryptogram', (accounts) => {
             let result = [];
             for (var i = 0; i < hashes.length; i++) {
                 tokenInfo = await contract.getTokenInfo(i);
-                result.push(tokenInfo[5]);
+                result.push(tokenInfo[9]);
             }
             assert.equal(result.join(','), hashes.join(','), 'correct hashes');
         });
@@ -116,11 +116,11 @@ contract('Cryptogram', (accounts) => {
         });
 
         it('indexes and adds supporters', async() => {
-            const desiredLikes = 6;
+            const desiredLikes = 8;
             for (var i = 2; i <= desiredLikes; i++) {
                 await contract.supportArtwork(artworkId, {from: accounts[i]});
             }
-            const totalLikes = (await contract.getTokenInfo(artworkId))[8];
+            const totalLikes = (await contract.getTokenInfo(artworkId))[5];
             assert.equal(totalLikes.toNumber(), desiredLikes, 'correct number of likes');
             const supporters = await contract.getSupportersOfArtwork(artworkId);
             assert.equal(
@@ -135,10 +135,10 @@ contract('Cryptogram', (accounts) => {
     describe('artwork purchase', async() => {
 
         it('pays the artist', async() => {
-            // account 9 will buy the artwork of account 0 supported by 1, 2, 3, 4, 5 and 6
+            // account 9 will buy the artwork of account 0 supported by 1, 2, 3, 4, 5, 6, 7 and 8
             const artworkId = 0;
             initialArtistBalance = await web3.eth.getBalance(accounts[0]);
-            const weiAmount = web3.utils.toWei('1.6', 'ether');
+            const weiAmount = web3.utils.toWei('1.008', 'ether');
             // buy and transfer to artist
             await contract.buyArtworkToCreator(artworkId, { from: accounts[9], value: weiAmount });
             const creatorGain = await web3.eth.getBalance(accounts[0]) - initialArtistBalance;
@@ -155,30 +155,54 @@ contract('Cryptogram', (accounts) => {
     describe('supporter funds managing', async() => {
 
         it('register funds and allows extraction', async() => {
-            let initialBalances = [];
-            for (var i = 1; i <= 6; i++) {
-                initialBalances.push(await web3.eth.getBalance(accounts[i]));
-            }
-            // TODO: handle this in the contract
-            //       with safemath
-            //       and maybe transfering up to a decimal precition and see the rest as admin comission :)
-            weiDecimalPrecision = 2;
-            const weiForSupporters = web3.utils.toWei('0.8', 'ether');
-            const weiForSupporter = (weiForSupporters / 6).toString().slice(0, -weiDecimalPrecision);
+            // funds for manager must be registered correctly before supporters extraction
+            let lockedFunds = BigInt(await contract.getLockedFunds());
+            console.log('lockedFunds = ', lockedFunds);
+
+            let contractFunds = BigInt(await contract.getContractFunds());
+            console.log("contractFunds = ", contractFunds);
+            
+            const weiForSupporters = BigInt(web3.utils.toWei('1.008', 'ether') / 2);
+            let supporterFunds = BigInt(0);
             let leftFunds = 0;
-            for (var i = 1; i <= 6; i++) {
-                availableFunds = (await contract.getAvailableFundsForSupporter(accounts[i])).toString();
-                assert.equal(
-                    availableFunds.slice(0, -weiDecimalPrecision), 
-                    weiForSupporter, 
-                    'correct total funds for supporters'
-                );
+            for (var i = 1; i <= 8; i++) {
+                availableFunds = BigInt(await contract.getAvailableFundsForSupporter(accounts[i]));
+                console.log("availableFunds = ", availableFunds);
+                supporterFunds += availableFunds;
                 await contract.withdrawSupporterFunds({from: accounts[i]});
                 leftFunds += (await contract.getAvailableFundsForSupporter(accounts[i])).toNumber();
             }
+            // console.log('weiForSupporters = ', weiForSupporters);
+            // console.log('supporter distributed = ', supporterFunds);
+            // console.log('difference = ', weiForSupporters - supporterFunds);
             await contract.withdrawSupporterFunds({from: accounts[1]}).should.be.rejected;
             assert.equal(leftFunds, 0, 'funds extracted correctly');
+            assert.isBelow(parseInt(supporterFunds), parseInt(weiForSupporters), 'must be slightly below the funds stored in the contract');
+
+            contractFunds = BigInt(await contract.getContractFunds());
+            console.log("contractFunds = ", contractFunds);
+
+            assert.equal(
+                parseInt(lockedFunds), parseInt(weiForSupporters - supporterFunds), 
+                'remaining funds stored correctly in contract'
+            );
+        });
+
+        it('manager can extract remaining funds', async() => {
+            await contract.withdrawLockedFunds();
+            let lockedFunds = parseInt(await contract.getLockedFunds());
+            console.log("lockedFunds = ", lockedFunds);
+
+            contractFunds = parseInt(await contract.getContractFunds());
+            console.log("contractFunds = ", contractFunds);
+
+            assert.equal(lockedFunds, 0, "locked funds must be 0");
+            assert.equal(contractFunds, 0, "no funds should be left");
         });
     });
+
+    // describe('artwork offer', async() => {
+
+    // });
 
 })
