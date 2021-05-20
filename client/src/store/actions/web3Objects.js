@@ -33,11 +33,9 @@ export const injectWeb3Fail = ( error ) => {
 // DISPATCH WEB3 INJECTION AND LATER CONTRACT AND ADDRESSES
 export const getWeb3Objects = ( web3mode, getAccounts, seeds ) => {
     return async (dispatch) => {
-        console.log('[getWeb3Objects]');
         dispatch( injectWeb3Start( ) );
         try {
             const web3 = await getWeb3( web3mode );
-            console.log('web3 = ', web3);
             dispatch( injectWeb3Success( web3, web3mode ) );
             dispatch( loadContract( web3 ) );
 
@@ -46,7 +44,7 @@ export const getWeb3Objects = ( web3mode, getAccounts, seeds ) => {
                     dispatch( getAddressFromSeed(seeds, false, null, null) );
                 } else if ( web3mode === 'browser' ) {
                     console.log('web3mode = browser');
-                    // dispatch( getAccountsFromBrowser() );
+                    dispatch( getAccountsFromBrowser(true, null) );
                 }
             }
 
@@ -72,18 +70,14 @@ export const loadContractFail = ( error ) => {
 
 export const loadContract = ( web3 ) => {
     return async (dispatch) => {
-        // console.log('[loadContract]');
         dispatch( loadContractStart() );
         try {
             const networkId = await web3.eth.net.getId();
-            console.log('networkId = ', networkId);
             const deployedNetwork = Artworks.networks[networkId];
-            // console.log('deployedNetwork = ', deployedNetwork);
             const contract = new web3.eth.Contract(
                 Artworks.abi,
                 deployedNetwork && deployedNetwork.address,
             );
-            console.log('contract = ', contract);
             dispatch( loadContractSuccess(contract) );
         } catch (error) {
             dispatch( loadContractFail(error) );
@@ -105,19 +99,21 @@ export const getAccountsFromBrowserFail = ( error ) => {
     return { type: actionTypes.GET_ACCOUNTS_FROM_BROWSER_FAIL, error: error };
 };
 
-export const getAccountsFromBrowser = () => {
-    return async (dispatch) => {
+export const getAccountsFromBrowser = (
+    request, newAccount, firebaseRegister, userId, idToken
+) => {
+    return async ( dispatch ) => {
         dispatch( getAccountsFromBrowserStart() );
         try {
-            console.log("[getAccountsFromBrowser]");
             // const accounts = await web3.eth.getAccounts();
-            const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-            console.log('accounts = ', accounts);
-            // window.ethereum.on(
-            //     'accountsChanged', 
-            //     () => { dispatch(getAccountsFromBrowser()) }
-            // );
+            let accounts;
+            if ( request ) {
+                accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+            } else {accounts = [newAccount]}
             dispatch( getAccountsFromBrowserSuccess( accounts ) );
+            if ( firebaseRegister ) {
+                dispatch( registerWallet( '', accounts[0], userId, idToken ) );
+            }
         } catch ( error ) {
             console.log('error = ', error);
             dispatch( getAccountsFromBrowserFail( error ) );
@@ -146,7 +142,6 @@ export const getAddressFromSeedFail = ( error ) => {
 export const getAddressFromSeed = ( seeds, firebaseRegister, userId, idToken ) => {
     return async(dispatch) => {
         dispatch( getAddressFromSeedStart() );
-        // console.log('[getAddressFromSeed]');
         try {
             let seedPhrase = seeds;
             if ( !seeds ) {
@@ -159,10 +154,6 @@ export const getAddressFromSeed = ( seeds, firebaseRegister, userId, idToken ) =
                 var privateKey = wallet.getPrivateKey();
                 var publicKey = util.privateToPublic(privateKey);
                 var address = '0x' + util.pubToAddress(publicKey).toString('hex');
-
-                // console.log('seedPhrase = ', seedPhrase);
-                // console.log('wallet = ', wallet);
-                // console.log('address = ', address);
 
                 dispatch( getAddressFromSeedSuccess( seedPhrase, wallet, address ) );
 

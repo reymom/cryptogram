@@ -79,6 +79,7 @@ const supportArtworkSuccess = ( state, action ) => {
         processingSupport: false,
         loadedArtwork: {
             ...state.loadedArtwork,
+            totalLikes: (parseInt(state.loadedArtwork.totalLikes) + 1).toString(),
             supporters: [...state.loadedArtwork.supporters, action.supporterAddress]
         }
     } );

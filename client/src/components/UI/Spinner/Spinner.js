@@ -1,6 +1,6 @@
 import React from 'react';
 
-import loadingLogo from '../../../assets/ethLogo.jpeg';
+import loadingLogo from '../../../assets/ethLogo.png';
 import classes from './Spinner.module.css';
 
 const spinner = () => (

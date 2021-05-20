@@ -24,19 +24,22 @@ export const registerWalletFail = ( error ) => {
 
 export const registerWallet = ( seeds, address, userId, idToken ) => {
     return dispatch => {
-        // console.log('[registerWallet]');
         dispatch(registerWalletStart());
-        const publicPatch = axiosProfile.patch(
-            '/profile/' + userId + '/publicInfo.json?auth=' + idToken, 
-            { address: address }  
-        )
-        const privatePatch = axiosProfile.patch(
-            '/profile/' + userId + '/privateInfo.json?auth=' + idToken, 
-            { seeds: seeds }
-        );
-        axios.all([publicPatch, privatePatch]).then(axios.spread((...responses) => {
-            // console.log('response publicPatch = ', responses[0]);
-            // console.log('response privatePatch = ', responses[1]);
+        let patches = [
+            axiosProfile.patch(
+                '/profile/' + userId + '/publicInfo.json?auth=' + idToken, 
+                { address: address }  
+            )
+        ]
+        if ( seeds ) {
+            patches.push( 
+                axiosProfile.patch(
+                    '/profile/' + userId + '/privateInfo.json?auth=' + idToken, 
+                    { seeds: seeds }
+                )
+            );
+        }
+        axios.all(patches).then(axios.spread((...responses) => {
             dispatch( registerWalletSuccess( userId, address ) );
         })).catch(errors => {
             console.log('errors = ', errors);
@@ -48,14 +51,14 @@ export const registerWallet = ( seeds, address, userId, idToken ) => {
 // FETCH GAS STATION
 export const fetchEthereumInfoSuccess = ( conversion, gasStation ) => {
     return {
-        type: actionTypes.FETCH_ETHEREUM_DATA_SUCCESS,
+        type: actionTypes.FETCH_ETHEREUM_INFO_SUCCESS,
         conversion: conversion,
         gasStation: gasStation
     }
 }
 
 export const fetchEthereumInfoFail = () => {
-    return { type: actionTypes.FETCH_ETHEREUM_DATA_FAIL }
+    return { type: actionTypes.FETCH_ETHEREUM_INFO_FAIL }
 }
 
 export const fetchEthereumInfo = ( idToken ) => {
@@ -103,8 +106,6 @@ export const fetchActiveUserData = ( userId, idToken ) => {
             '/profile/' + userId + '/privateInfo.json?auth=' + idToken
         );
         axios.all([getPubicData, getPrivateData]).then(axios.spread((...responses) => {
-            // console.log('response getPubicData = ', responses[0]);
-            // console.log('response getPrivateData = ', responses[1]);
             dispatch( fetchActiveUserDataSuccess( userId, responses[0].data, responses[1].data ) );
             
             let web3mode = 'custom';
@@ -140,16 +141,17 @@ export const getUserIdFromAddressFail = ( error ) => {
 export const getUserIdFromAddress = ( userAddress, idToken ) => {
     return dispatch => {
         const queryParams = '&orderBy="publicInfo/address"&equalTo="' + userAddress.toLowerCase() + '"';
-        console.log('userAddress = ', userAddress);
         axiosProfile.get( '/profile.json?auth=' + idToken + queryParams)
             .then( response => {
                 let userId = Object.keys(response.data)[0];
-                dispatch( getUserIdFromAddressSuccess( 
-                    userId, 
-                    response.data[userId].publicInfo.name,
-                    response.data[userId].publicInfo.imageSrc, 
-                    userAddress 
-                ) );
+                if (response.data[userId]) {
+                    dispatch( getUserIdFromAddressSuccess( 
+                        userId, 
+                        response.data[userId].publicInfo.name,
+                        response.data[userId].publicInfo.imageSrc, 
+                        userAddress 
+                    ) );
+                } else dispatch( getUserIdFromAddressFail( "No user registered for this address" ) );
             } )
             .catch( error => {
                 console.log('error = ', error);
@@ -212,7 +214,6 @@ export const editProfile = ( fromUserId, idToken, data ) => {
             data
         )
             .then( response => {
-                console.log('response = ', response);
                 dispatch( editProfileSuccess( ) );
                 // refetch changes
                 dispatch( fetchActiveUserData( fromUserId, idToken ) );
@@ -271,8 +272,6 @@ export const followUser = ( fromUserId, fromAddress, toUserId, toAddress, idToke
             );
 
             axios.all([axiosFollower, axiosFollowed]).then(axios.spread((...responses) => {
-                console.log('response[0] = ', responses[0]);
-                console.log('response[1] = ', responses[1]);
                 dispatch( followUserSuccess( unfollow, toUserId, fromUserId ) );
             })).catch(errors => {
                 console.log('errors = ', errors);

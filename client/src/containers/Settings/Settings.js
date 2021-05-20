@@ -9,26 +9,13 @@ import Modal from '../../components/UI/Modal/Modal';
 import CreateAccount from './CreateAccount/CreateAccount';
 
 class Settings extends React.Component {
-    state = { 
-        activeSidebarOption: 'accounts',
-        creatingAccount: false
-    }
+    state = { activeSidebarOption: 'accounts', creatingAccount: false }
 
-    componentDidMount = async () => {
-        // if ( 
-        //     (!this.props.loadingFirebase && !this.props.profileInfo) 
-        //     && (this.props.userId && this.props.idToken)
-        // ) {
-        //     await this.props.onFetchProfile(this.props.userId, this.props.idToken);
-        // }
-    }
-
-    sidebarOptionClickedHandler = (sidebarOption) => {
+    sidebarOptionClickedHandler = ( sidebarOption ) => {
         this.setState({ activeSidebarOption: sidebarOption })
     }
 
     showAccountModal = ( web3mode ) => {
-        console.log('[getAccountHandler] mode:', web3mode);
         switch ( web3mode ) {
             case ('seed'):
                 this.setState({ creatingAccount: true });
@@ -41,9 +28,7 @@ class Settings extends React.Component {
         }
     }
 
-    hideAccountModal = () => {
-        this.setState({ creatingAccount: false, });
-    }
+    hideAccountModal = () => this.setState({ creatingAccount: false })
 
     render() {
         let createAccountModal;
@@ -120,32 +105,10 @@ class Settings extends React.Component {
     }
 }
 
-const mapStateToProps = state => {
-    return {
-        // auth info
-        userId: state.auth.userId,
-        idToken: state.auth.idToken,
-        // firebase
-        loadingFirebase: state.firebaseProfile.loading,
-        profileInfo: state.firebaseProfile.profileInfo,
-        // Web3Objects
-        // web3
-        web3: state.web3Objects.web3,
-        loadingWeb3: state.web3Objects.loadingWeb3,
-        errorWeb3: state.web3Objects.errorWeb3,
-        // get accounts
-        accounts: state.web3Objects.accounts,
-        loadingAccounts: state.web3Objects.loadingAccounts,
-        errorAccounts: state.web3Objects.errorAccounts,
-    }
-}
+// const mapStateToProps = state => {
+//     return { }
+// }
 
-const mapDispatchToProps = dispatch => ({
-    onGetWeb3Objects: () => dispatch( actions.getWeb3Objects() ),
-    onGetAccountsFromBrowser: ( web3 ) => dispatch( actions.getAccountsFromBrowser(web3) ),
-    // onFetchProfile: ( userAddress, idToken ) => dispatch(
-    //     actions.fetchProfile(userAddress, idToken)
-    // ),
-})
+// const mapDispatchToProps = dispatch => ({ })
 
-export default connect( mapStateToProps, mapDispatchToProps )(Settings);
+export default connect( null, null )(Settings);

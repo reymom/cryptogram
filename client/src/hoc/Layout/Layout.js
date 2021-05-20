@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { NavLink } from 'react-router-dom';
+// import { NavLink } from 'react-router-dom';
 
 import * as actions from '../../store/actions';
 import classes from './Layout.module.css';
@@ -22,7 +22,9 @@ class Layout extends React.Component {
     closeDropdownHandler = () => { this.setState({ showDropdown: false }); }
 
     notificationsClickedHandler = () => {
+        // console.log('[notificationsClickedHandler]');
         this.setState( ( prevState ) => {
+            // console.log('prevState.showNotifications = ', prevState.showNotifications);
             if (!prevState.showNotifications) {
                 this.props.onGetBalance(
                     this.props.activeAddress,
@@ -39,6 +41,7 @@ class Layout extends React.Component {
     }
 
     closeNotificationsHandler = () => { 
+        // console.log('[closeNotificationsHandler]');
         this.setState({ showNotifications: false });
     }
 
@@ -98,9 +101,9 @@ class Layout extends React.Component {
             noWeb3InfoBar = 
                 <div className={ classes.NoWeb3InfoBarContainer }>
                     No ethereum address configured, &nbsp;
-                    <NavLink to="/settings">
+                    {/* <NavLink to="/settings">
                         please create or select one to fully enjoy the app.
-                    </NavLink>
+                    </NavLink> */}
                 </div>
         }
 
@@ -121,6 +124,8 @@ class Layout extends React.Component {
         ) {
             notificationsSideDrawer = 
                 <Notifications
+                    isManager={ this.props.isManager }
+                    lockedFunds={ this.props.lockedFunds }
                     claimRewardsClicked={ this.claimRewardsClicked }
                     profileImgSrc={ profileImgSrc }
                     profileInfo={ this.props.activeUserInfo.public }
@@ -130,6 +135,14 @@ class Layout extends React.Component {
                     errorClaimFunds={this.props.errorClaimFunds}
                     open={ this.state.showNotifications }
                     closed={ this.closeNotificationsHandler }>
+                        {/* <div>
+                            { this.props.activeAddressPurchase.offers.map(offer => (
+                                <div>
+                                    { offer.address }
+                                    { offer.price }
+                                </div>
+                            )) }
+                        </div> */}
                 </Notifications>
         }
 
@@ -147,14 +160,17 @@ class Layout extends React.Component {
                 { notificationsSideDrawer }
                 { noWeb3InfoBar }
                 { 
-                    (this.props.ethereumInfo.gasStation && this.state.showGasFeeModal ) ? 
+                    ( 
+                        this.props.ethereumInfo && this.props.ethereumInfo.gasStation && this.state.showGasFeeModal 
+                    ) ? 
                         <GasFeeModal 
                             submitClicked={ 
                                 ( gasValue ) => { this.claimRewardsHandler( gasValue ) }
                             }
                             cancelClicked={ this.hideGasFeeModal }
                             showGasFeeModal={ this.state.showGasFeeModal }
-                        /> : ''
+                        /> 
+                    : ''
                 }
                 <main className={ classes.Content }>
                     { this.props.children }
@@ -197,10 +213,12 @@ const mapStateToProps = state => {
         ------------- */
         // ACTIVE USER INFO
         activeAddress: state.web3Address.addressActive,
+        isManager: state.web3Address.isManager,
         balancesActive: state.web3Address.balancesActive,
         // artworksActive: state.web3Address.artworksActive,
         fetchingInfoActive: state.web3Address.fetchingInfoActive,
         // FUNDS
+        lockedFunds: state.web3Address.lockedFunds,
         availableFunds: state.web3Address.availableFunds,
         claimingFunds: state.web3Address.claimingFunds,
         errorClaimFunds: state.web3Address.errorClaimFunds

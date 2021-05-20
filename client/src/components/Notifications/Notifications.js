@@ -5,7 +5,7 @@ import Backdrop from '../UI/Backdrop/Backdrop';
 import Button from '../UI/Button/Button';
 import Aux from '../../hoc/Aux/Aux';
 
-const notifications = ( props ) => {    
+const notifications = ( props ) => {
     let attachedClasses = [classes.SideDrawer, classes.Close];
     if ( props.open ) {
         attachedClasses = [classes.SideDrawer, classes.Open];
@@ -24,7 +24,14 @@ const notifications = ( props ) => {
             UPS, could not complete the transaction.
         </div>
     }
-    
+
+    const decimalCount = num => {
+        const numStr = String(num);
+        if (numStr.includes('.')) {
+            return numStr.split('.')[1].length;
+        };
+        return 0;
+    }
 
     return (
         <Aux>
@@ -38,7 +45,9 @@ const notifications = ( props ) => {
                         className={classes.Address}>
                             {props.profileInfo.address}
                     </a>
+                    { props.isManager ? <p style={{ color:"#b43030", fontSize:"20px"}}>MANAGER</p> : ''}
                 </div>
+
                 <hr className={classes.Hr}/>
                 <Button 
                     btnType="Register"
@@ -47,15 +56,25 @@ const notifications = ( props ) => {
                     Buy ether
                 </Button>
                 <div className={classes.Balances}>
-                    <div>Balance</div><span>{ props.ethBalance } eth</span>
+                    <div>Balance</div><span>{ 
+                        decimalCount(parseFloat(props.ethBalance)) > 2 ?
+                        parseFloat(props.ethBalance).toFixed(2) :
+                        props.ethBalance
+                    } eth</span>
                     <div>Available Funds</div><span>{ props.availableFunds } eth</span>
+                    {
+                        props.isManager ? <div>Locked Funds</div> : ''
+                    }
+                    {
+                        props.isManager ? <span>{ props.lockedFunds } eth</span> : ''
+                    }
                 </div>
                 <Button 
                     btnType="Login" 
                     clicked={ props.claimRewardsClicked } 
                     disabled={
-                        props.availableFunds.toString() === "0" || 
-                        props.ethBalance.toString() === "0"
+                        (props.availableFunds.toString() === "0" && props.lockedFunds.toString() === "0")
+                        || props.ethBalance.toString() === "0"
                     }
                 >
                     Get funds

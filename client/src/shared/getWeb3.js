@@ -1,7 +1,5 @@
 import Web3 from "web3";
 
-import { getAccountsFromBrowser } from './web3Objects';
-
 const getWeb3 = ( source ) =>
     new Promise( async(resolve, reject) => {
 
@@ -15,13 +13,13 @@ const getWeb3 = ( source ) =>
                         // Request account access if needed
                         // await window.ethereum.enable();
                         // Acccounts now exposed
-                        window.ethereum.on(
-                            'accountsChanged', 
-                            (dispatch) => {
-                                console.log( "changed account, do something!");
-                                dispatch(getAccountsFromBrowser());
-                            }
-                        );
+                        // window.ethereum.on(
+                        //     'accountsChanged', 
+                        //     () => {
+                        //         console.log( "changed account, do something!");
+                        //         getAccountsFromBrowser();
+                        //     }
+                        // );
                         resolve( web3 );
                     } catch ( error ) {
                         reject( error );

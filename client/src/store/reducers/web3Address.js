@@ -4,6 +4,7 @@ import { updateObject } from '../../shared/utility';
 const initialState = {
     // ACTIVE USER INFO
     addressActive: null,
+    isManager: false,
     balancesActive: null,
     artworksActive: null,
     fetchingInfoActive: false,
@@ -14,6 +15,7 @@ const initialState = {
     fetchingInfo: false,
     // AVAILABLE FUNDS (ACTIVE USER)
     availableFunds: null,
+    lockedFunds: 0,
     gettingAvailableFunds: false,
     claimingFunds: false,
     errorClaimFunds: null
@@ -39,6 +41,7 @@ const fetchAddressInfoSuccess = ( state, action ) => {
     if ( action.isActiveUser ) {
         object = {
             addressActive: action.address,
+            isManager: action.isManager,
             balancesActive: {
                 ethBalance: action.ethBalance,
                 tokenBalance: action.tokenBalance,
@@ -46,7 +49,7 @@ const fetchAddressInfoSuccess = ( state, action ) => {
                 numTokensBought: action.numTokensBought,
             },
             artworksActive: action.artworks,
-            fetchingInfoActive: false
+            fetchingInfoActive: false,
         };
     } else {
         object = {
@@ -95,6 +98,7 @@ const fetchAvailableFundsSuccess = ( state, action ) => {
     return updateObject( state, {
         gettingAvailableFunds: false,
         availableFunds: action.availableFunds,
+        lockedFunds: action.lockedFunds
     } );
 };
 
@@ -118,6 +122,10 @@ const claimRewardsFail = ( state, action ) => {
     } );
 };
 
+const withdrawFundsSuccess = ( state, ) => {
+    return updateObject( state, { lockedFunds: 0 } );
+}
+
 // REDUCER
 const reducer = ( state = initialState, action ) => {
     switch ( action.type ) {
@@ -137,6 +145,7 @@ const reducer = ( state = initialState, action ) => {
         case actionTypes.CLAIM_REWARDS_START: return claimRewardsStart( state, action );
         case actionTypes.CLAIM_REWARDS_SUCCESS: return claimRewardsSuccess( state, action );
         case actionTypes.CLAIM_REWARDS_FAIL: return claimRewardsFail( state, action );
+        case actionTypes.WITHDRAW_FUNDS_SUCCESS: return withdrawFundsSuccess( state, action );
         default: return state;
     }
 };

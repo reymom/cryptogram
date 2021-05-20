@@ -4,7 +4,6 @@ import classes from './LoadedHistory.module.css';
 import Aux from '../../hoc/Aux/Aux';
 
 const loadedHistory = ( props ) => {
-    console.log('props = ', props);
     let content = '';
     if (props.type === 'Creation') {
         content = <div className={classes.InfoContainer}>

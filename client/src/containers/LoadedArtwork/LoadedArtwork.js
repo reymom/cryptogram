@@ -48,6 +48,29 @@ class LoadedArtwork extends React.Component {
         this.props.onClearPurchaseState();
     }
 
+    decimalCount = num => {
+        // Convert to String
+        const numStr = String(num);
+        // String Contains Decimal
+        if (numStr.includes('.')) {
+           return numStr.split('.')[1].length;
+        };
+        // String Does Not Contain Decimal
+        return 0;
+    }
+
+    renderedDate = unixDate => {
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        var year = unixDate.getFullYear();
+        var month = months[unixDate.getMonth()];
+        var date = unixDate.getDate();
+        var hour = unixDate.getHours();
+        var min = unixDate.getMinutes() < 10 ? '0' + unixDate.getMinutes() : unixDate.getMinutes();
+        var sec = unixDate.getSeconds() < 10 ? '0' + unixDate.getSeconds() : unixDate.getSeconds();
+        var time = date + ' ' + month + ' ' + year + ' ' + hour + ':' + min + ':' + sec ;
+        return time;
+    }
+
     clearErrors() {
         this.setState({ 
             supportError: false,
@@ -179,8 +202,6 @@ class LoadedArtwork extends React.Component {
     }
 
     buyArtworkHandler = ( gasValue ) => {
-        console.log('[buyArtworkHandler]');
-
         let gas = 21000; // before 6721975
         let gasPrice = this.props.ethereumInfo.gasStation.fast.gasPrice; // before 10000000000
         let gasLimit = 865000; // 
@@ -204,8 +225,8 @@ class LoadedArtwork extends React.Component {
     }
 
     render() {
-        let renderedArtwork;
-        if ( this.props.nextProfile && !this.props.fetchingArtwork && this.props.loadedArtwork ) {
+        let profileInfo;
+        if ( this.props.nextProfile ) {
             let profile = this.props.nextProfile;
             if ( this.props.loadedArtwork.owner === this.props.activeUser.userAddress ) {
                 profile = {
@@ -222,31 +243,41 @@ class LoadedArtwork extends React.Component {
             } else {
                 imgClasses.push(classes.EmptyImageBackground);
             }
-            let profilePic = <img src={profileSrc} alt={profileSrc} />
+            let profilePic = <img src={profileSrc} alt={profileSrc} />;
 
+            profileInfo = 
+                <React.Fragment>
+                    <div 
+                        className={ imgClasses.join(' ') }
+                        onClick={() => { this.loadProfileHandler() }}>
+                            { profilePic }
+                    </div>
+                    <h2 
+                        className={classes.UserName}
+                        onClick={() => { this.loadProfileHandler() }}>
+                            {profile.userName}
+                    </h2>
+                </React.Fragment>
+        }
+
+        let renderedArtwork;
+        if ( !this.props.fetchingArtwork && this.props.loadedArtwork ) {
             // Rendered
             const artwork = this.props.loadedArtwork;
             renderedArtwork =
                 <div className={classes.Container}>
                     <div className={classes.Header}>
-                        <div 
-                            className={ imgClasses.join(' ') }
-                            onClick={() => { this.loadProfileHandler() }}>
-                                { profilePic }
-                        </div>
-                        <h2 
-                            className={classes.UserName}
-                            onClick={() => { this.loadProfileHandler() }}>
-                                {profile.userName}
-                        </h2>
-                        <h2 
-                            className={classes.UserAddress}
-                            onClick={() => { this.loadProfileHandler() }}>
-                            { artwork.owner }
-                        </h2>
+                        { profileInfo ? profileInfo : ''}
+                        { 
+                            profileInfo ? 
+                            <h2 
+                                className={classes.UserAddress}
+                                onClick={() => { this.loadProfileHandler() }}>
+                                { artwork.owner }
+                            </h2> : <h2>{ artwork.owner }</h2>
+                        }
                         <h1> "{ artwork.description }" </h1>
                     </div>
-
                     <div className={classes.ImageInfoContainer}>
                         <div className={classes.ImageContainer}>
                             <img
@@ -255,13 +286,46 @@ class LoadedArtwork extends React.Component {
                                 className={ classes.Image }
                             />
                         </div>
-                        <div className={classes.InfoContainer}>
-                            <ul>
-                                <li>Initial price: {this.props.web3.utils.fromWei(artwork.initialPrice)} ethers</li>
-                                <li>Current Price: {this.props.web3.utils.fromWei(artwork.currentPrice)} ethers</li>
-                                <li>Supporters: { artwork.totalLikes }</li>
-                            </ul>
+                        <div>
+                            <div className={classes.InformationTable}>
+                                <p>Creation Date</p>
+                                <div>
+                                    <p>
+                                        { this.renderedDate(new Date(artwork.creationDate * 1000 )) }
+                                    </p>
+                                </div>
+                                <p>Initial Price</p>
+                                <div>
+                                    <p>{ 
+                                        this.decimalCount(parseFloat(this.props.web3.utils.fromWei(artwork.initialPrice))) > 2 ?
+                                        parseFloat(this.props.web3.utils.fromWei(artwork.initialPrice)).toFixed(2) :
+                                        this.props.web3.utils.fromWei(artwork.initialPrice)
+                                    } eth</p>
+                                    <p>
+                                        {(parseFloat(this.props.web3.utils.fromWei(artwork.initialPrice)) * 
+                                        parseFloat(this.props.ethereumInfo.conversion.euro)).toFixed(2)}€
+                                    </p>
+                                </div>
+                                <p>Current Price</p>
+                                <div>
+                                    <p>{ 
+                                        this.decimalCount(parseFloat(this.props.web3.utils.fromWei(artwork.currentPrice))) > 2 ?
+                                        parseFloat(this.props.web3.utils.fromWei(artwork.currentPrice)).toFixed(2) :
+                                        this.props.web3.utils.fromWei(artwork.currentPrice)
+                                    } eth</p>
+                                    <p>
+                                        {(parseFloat(this.props.web3.utils.fromWei(artwork.currentPrice)) * 
+                                        parseFloat(this.props.ethereumInfo.conversion.euro)).toFixed(2)}€
+                                    </p>
+                                </div>
+                                <p>Share</p>
+                                <div>
+                                    <p>{ artwork.participationPercentage }%</p>
+                                </div>
+                            </div>
+
                             <div className={classes.ListSupporters}>
+                                <p style={{ textAlign:"center", fontSize:"14px", fontWeight:"bold"}}>Supporters</p>
                                 {
                                     artwork.supporters.map((supporter, key) => {
                                         return <li key={key}>({key + 1}) {supporter}</li>
@@ -276,12 +340,14 @@ class LoadedArtwork extends React.Component {
                         <div className={classes.ButtonContainer}>
                             <div 
                                 className={classes.Button} 
-                                onClick={() => { this.buyArtworkClicked() }}>
+                                onClick={() => { this.buyArtworkClicked() }}
+                            >
                                 <FontAwesomeIcon 
                                     icon={faCoins} 
                                     size="3x"
                                     color='green'
                                 />
+                                <p>{this.props.web3.utils.fromWei(artwork.currentPrice)} eth</p>
                             </div>
                             Buy
                         </div>
@@ -294,6 +360,7 @@ class LoadedArtwork extends React.Component {
                                     size="3x"
                                     color='rgb(190, 35, 68)'
                                 />
+                                <p>{artwork.totalLikes}</p>
                             </div>
                             Support
                         </div>

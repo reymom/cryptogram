@@ -23,7 +23,6 @@ export const fetchEventsFail = ( eventName ) => {
 export const fetchEvents = ( contract, following, eventName ) => {
     return dispatch => {
         dispatch( fetchEventsStart( eventName ) );
-        // console.log('following = ', following, 'eventName = ', eventName);
 
         let filterDict;
         if ( eventName === 'newArtwork' ) {
@@ -45,12 +44,9 @@ export const fetchEvents = ( contract, following, eventName ) => {
 
                     if ( visitedIds ) { visitedIds = visitedIds.split(','); }
 
-                    // console.log('visitedIds = ', visitedIds);
-
                     // reconstruct objects to present artworks in histories
                     let newEvents = [];
                     for ( var i = 0; i < events.length; i++ ) {
-                        // console.log('i = ', i, 'event[i] = ', events[i]);
                         let event = events[i];
                         if ( event.event === eventName ) {
                             let visited = false;
@@ -88,8 +84,6 @@ export const fetchEvents = ( contract, following, eventName ) => {
                             if (artworkRenderedDict) { newEvents.push(artworkRenderedDict); }
                         }
                     }
-
-                    // console.log('newEvents = ', newEvents);
                     dispatch( fetchEventsSuccess( newEvents, eventName ) );
                 } else {
                     dispatch( fetchEventsSuccess( [], eventName ) );

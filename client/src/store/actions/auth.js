@@ -5,11 +5,14 @@ import * as actionTypes from './actionTypes';
 
 import { 
     clearActiveUserData, 
-    fetchActiveUserData
+    fetchActiveUserData,
+    fetchActiveUserDataSuccess,
+    fetchEthereumInfo
 } from './firebaseProfile';
 import { 
     clearWeb3ObjectsState,
-    getWeb3Objects, 
+    getWeb3Objects,
+    getAccountsFromBrowser,
     getAddressFromSeed 
 } from './web3Objects';
 import { clearWeb3AddressData } from './web3Address';
@@ -40,7 +43,7 @@ export const firebaseLogout = () => {
     localStorage.removeItem('expirationDate');
     localStorage.removeItem('userId');
     return { type: actionTypes.AUTH_LOGOUT };
-}
+};
 
 export const logout = () => {
     return dispatch => {
@@ -51,7 +54,6 @@ export const logout = () => {
         dispatch( clearEventsData() );
     }
 };
-
 
 export const auth = ( email, password, isLogin, name, myEthereum, seeds ) => {
     return dispatch => {
@@ -84,14 +86,14 @@ export const auth = ( email, password, isLogin, name, myEthereum, seeds ) => {
                         { myEthereum: myEthereum }
                     );
                     axios.all([publicPut, privatePut]).then(axios.spread((...responses) => {
-                        console.log('responsePublic = ', responses[0]);
-                        console.log('responsePrivate = ', responses[1]);
+                        dispatch( fetchActiveUserDataSuccess(userId, { name: name }, { myEthereum: myEthereum }) );
+                        dispatch( fetchEthereumInfo(idToken) );
                         if ( myEthereum === 'custom' ) {
                             dispatch( getAddressFromSeed( seeds, true, userId, idToken ) );
                             dispatch( getWeb3Objects('custom', false, '') );
                         } else if ( myEthereum === 'browser' ) {
-                            dispatch( getWeb3Objects('browser', true, '') );
-
+                            dispatch( getWeb3Objects('browser', false, '') );
+                            dispatch( getAccountsFromBrowser(true, null, true, userId, idToken) );
                         }
                     })).catch(errors => {
                         console.log('errors = ', errors);

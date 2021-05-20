@@ -118,7 +118,7 @@ class EditProfile extends React.Component {
         if (this.state.form['description'].value) {
             data['description'] = this.state.form['description'].value;
         }
-        console.log('data = ', data);
+        // console.log('data = ', data);
 
         if (this.state.selectedFile) {
             const file = await this.props.IPFSInstance.add(this.state.selectedFile);

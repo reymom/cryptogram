@@ -14,6 +14,7 @@ import {
 
 import {
     claimRewardsSuccess,
+    withdrawFundsSuccess,
     fetchAvailableFunds,
     fetchAvailableFundsFail,
     fetchAddressInfo,
@@ -22,12 +23,7 @@ import {
 
 export const sendSignedTransaction = (
     operation, from, to, value, gasPrice, gasLimit, data, privateKey, web3, methods
-) => { 
-    console.log('value = ', value);
-    console.log('web3.utils.toHex(value) = ', web3.utils.toHex(value));
-    console.log('gasPrice = ', gasPrice);
-    console.log('web3.utils.toHex(gasPrice) = ', web3.utils.toHex(gasPrice));
-    console.log('gasLimit = ', gasLimit)
+) => {
     return async( dispatch ) => {
         const rawData = {
             from: from,
@@ -51,7 +47,7 @@ export const sendSignedTransaction = (
                 transactionHash = hash;
             })
             .then(receipt => {
-                console.log('receipt = ', receipt);
+                // console.log('receipt = ', receipt);
                 // dispatch corresponding actions
                 switch ( operation ) {
                     case 'creation':
@@ -69,6 +65,10 @@ export const sendSignedTransaction = (
                         break;
                     case 'claim':
                         dispatch( claimRewardsSuccess() );
+                        dispatch( getBalance(from, web3, true) );
+                        break;
+                    case 'withdraw':
+                        dispatch( withdrawFundsSuccess() );
                         dispatch( getBalance(from, web3, true) );
                         break;
                     default:

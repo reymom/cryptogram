@@ -6,7 +6,7 @@ import {
     faSearch, 
     faCommentsDollar, 
     faUserAstronaut,
-    faUserCog,
+    // faUserCog,
     faSignOutAlt
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -64,11 +64,11 @@ const toolbar = props => (
                                         className={classes.ConfigIcon} icon={faUserAstronaut}/>
                                     My Profile
                                 </NavLink>
-                                <NavLink to="/settings" activeClassName={classes.active}>
+                                {/* <NavLink to="/settings" activeClassName={classes.active}>
                                     <FontAwesomeIcon 
                                         className={classes.ConfigIcon} icon={faUserCog}/>
                                     Settings
-                                </NavLink>
+                                </NavLink> */}
                                 <hr className={classes.Hr}/>
                                 <NavLink to="/logout">
                                     <FontAwesomeIcon 

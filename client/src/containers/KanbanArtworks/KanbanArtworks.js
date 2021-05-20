@@ -40,13 +40,8 @@ class KanbanArtworks extends React.Component {
         if ( artworks ) {
 
             kanbanArtworks = artworks.map(artwork => {
-                // console.log('creator = ', artwork.creator);
-                // console.log('this.props.showMode = ', this.props.showMode);
-                // console.log('this.props.page = ', this.props.page);
-
                 if ( this.props.showMode ) {
                     let ownerAddress = this.props.activeAddress;
-                    // console.log('ownerAddress = ', ownerAddress);
                     if ( this.props.page === 'profile' ) {
                         ownerAddress = this.props.externalAddress;
                     }
@@ -71,7 +66,10 @@ class KanbanArtworks extends React.Component {
                         priceSpent={ artwork.priceSpent }
                         description={ artwork.description }
                         tag={ artwork.tag }
-                        initialPrice={ artwork.initialPrice }
+                        // initialPrice={ this.props.web3.utils.fromWei(artwork.initialPrice) }
+                        currentPrice={ this.props.web3.utils.fromWei(artwork.currentPrice) }
+                        ethereumToEuro={ this.props.ethereumInfo.conversion.euro }
+                        // ethereumToDolar={ this.props.ethereumInfo.conversion.dolar }
                         participationPercentage={ artwork.participationPercentage }
                         totalLikes={ artwork.totalLikes }
                         clicked={() => this.artworkSelectedHandler(artwork.id)} />
@@ -100,11 +98,15 @@ class KanbanArtworks extends React.Component {
 
 const mapStateToProps = state => {
     return {
+        /* -----------------
+          FIREBASE PROFILE
+        ----------------- */
+        ethereumInfo: state.firebaseProfile.ethereumInfo,
         /* -------------
           WEB3 OBJECTS
         ------------- */
+        web3: state.web3Objects.web3,
         contract: state.web3Objects.contract,
-        
         /* -------------
           WEB3 ADDRESS
         ------------- */

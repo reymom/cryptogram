@@ -1,7 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
 
-// import * as actions from '../../store/actions';
 import classes from './Home.module.css';
 
 import Histories from '../Histories/Histories';
@@ -64,14 +63,4 @@ const mapStateToProps = state => {
     };
 };
 
-const mapDispatchToProps = dispatch => ({
-    // onGetWeb3Objects: ( web3mode, seeds ) => dispatch( 
-    //     actions.getWeb3Objects(web3mode, seeds)
-    // ),
-    // onLoadContract: ( web3 ) => dispatch( actions.loadContract( web3 ) ),
-    // onFetchActiveUserData: ( userId, idToken ) => dispatch(
-    //     actions.fetchActiveUserData( userId, idToken )
-    // ),
-});
-
-export default connect( mapStateToProps, mapDispatchToProps )( Home );
+export default connect( mapStateToProps, null )( Home );

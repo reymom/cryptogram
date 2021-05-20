@@ -56,7 +56,7 @@ class Histories extends React.Component {
     }
 
     changeVisitingArtwork = () => {
-        console.log('[changeVisitingArtwork]');
+        // console.log('[changeVisitingArtwork]');
         let eventType;
         let listArtworks;
         let currentArtworkId;
@@ -70,8 +70,8 @@ class Histories extends React.Component {
             currentArtworkId = parseInt(this.state.currentPurchaseId);
         }
 
-        console.log('listArtworks = ', listArtworks);
-        console.log('currentArtworkId = ', currentArtworkId);
+        // console.log('listArtworks = ', listArtworks);
+        // console.log('currentArtworkId = ', currentArtworkId);
 
         if ( currentArtworkId === listArtworks.length - 1 ) {
             clearInterval( this.artworkInterval );
@@ -110,8 +110,8 @@ class Histories extends React.Component {
     }
 
     imageClickedHandler = ( artwork, type ) => {
-        console.log('clicked artwork.index = ', artwork.index);
-        console.log('listIndex = ', artwork.listIndex);
+        // console.log('clicked artwork.index = ', artwork.index);
+        // console.log('listIndex = ', artwork.listIndex);
         if (type === 'Creation') {
             this.setState({
                 visitingArtworks: true, 

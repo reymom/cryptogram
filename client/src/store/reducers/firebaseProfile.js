@@ -34,7 +34,14 @@ const registerWalletSuccess = ( state, action ) => {
     return updateObject( state, { 
         registering: false, 
         registered: true,
-        activeUser: { userId: action.userId, userAddress: action.address, }
+        activeUser: { userId: action.userId, userAddress: action.address, },
+        activeUserInfo: {
+            ...state.activeUserInfo,
+            public: {
+                ...state.activeUserInfo.public,
+                address: action.address
+            }
+        }
     } );
 };
 

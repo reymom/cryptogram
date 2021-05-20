@@ -81,7 +81,6 @@ export const fetchArtwork = ( artworkId, methods ) => {
             let tokenObject = await methods.getTokenInfo( artworkId ).call();
             let owner = await methods.ownerOf( artworkId ).call();
             let supporters = await methods.getSupportersOfArtwork( artworkId ).call();
-            // console.log('supporters = ', supporters);
             let currentPrice = await methods.getCurrentPrice( artworkId ).call();
             let artwork = {
                 id: artworkId,
@@ -125,7 +124,6 @@ export const createArtwork = (
     contract, account, web3IsManual, web3, wallet, gas, gasPrice, gasLimit
 ) => {
     return dispatch => {
-        console.log('[createArtwork] IPFSPath = ', IPFSPath);
         dispatch( createArtworkStart() );
         let price = web3.utils.toWei(initialPrice, 'ether');
 
@@ -149,7 +147,6 @@ export const createArtworkWithWeb3Browser = (
     contract, account, web3
 ) => {
     return dispatch => {
-        console.log('[createArtworkWithWeb3Browser]');
         contract.methods.createArtwork(
             name, tag, IPFSPath, initialPrice, participationPercentage
         )
@@ -159,7 +156,6 @@ export const createArtworkWithWeb3Browser = (
                 // gasPrice: 100000000000 // SOGLEICH
             })
             .then(response => {
-                console.log('response = ', response);
                 dispatch( createArtworkSuccess( ) );
                 dispatch( fetchAddressInfo(web3, account, contract.methods, true ) );
             })
@@ -176,7 +172,6 @@ export const createArtworkWithWeb3Manual = (
     contract, account, web3, wallet, gasPrice, gasLimit
 ) => {
     return dispatch => {
-        console.log('[createArtworkWithWeb3Manual]');
         const createArtworkData = contract.methods.createArtwork(
             name, tag, IPFSPath, initialPrice, participationPercentage
         );
@@ -201,7 +196,10 @@ export const supportArtworkStart = () => {
 };
 
 export const supportArtworkSuccess = ( supporterAddress ) => {
-    return { type: actionTypes.SUPPORT_ARTWORK_SUCCESS, supporterAddress: supporterAddress };
+    return { 
+        type: actionTypes.SUPPORT_ARTWORK_SUCCESS, 
+        supporterAddress: supporterAddress 
+    };
 };
 
 export const supportArtworkFail = ( supportError ) => {
@@ -216,7 +214,6 @@ export const supportArtwork = (
         dispatch( clearSupportState() );
         dispatch( clearPurchaseState() );
         dispatch( supportArtworkStart() );
-        console.log('[supportArtworkStart]');
 
         if ( !web3IsManual ) {
             dispatch( supportArtworkWithWeb3Browser( tokenId, web3, contract, account ) );
@@ -232,7 +229,6 @@ export const supportArtwork = (
 // SUPPORT WITH WEB3 FROM BROWSER
 export const supportArtworkWithWeb3Browser = ( tokenId, web3, contract, account ) => {
     return dispatch => {
-        console.log('[supportArtworkWithWeb3Browser]');
         contract.methods.supportArtwork( tokenId )
             .send({ 
                 from: account, 
@@ -240,7 +236,6 @@ export const supportArtworkWithWeb3Browser = ( tokenId, web3, contract, account 
                 // gasPrice: 100000000000 // SOGLEICH
             })
             .then(response => {
-                console.log('response = ', response);
                 dispatch( supportArtworkSuccess( account ) );
                 dispatch( getBalance(account, web3, true) );
             })
@@ -259,7 +254,6 @@ export const supportArtworkWithWeb3Manual = (
     web3, wallet, gasPrice, gasLimit
 ) => {
     return dispatch => {
-        console.log('[supportArtworkWithWeb3Manual]');
         const supportArtworkData = contract.methods.supportArtwork( tokenId );
         dispatch( sendSignedTransaction(
             'support',
@@ -304,7 +298,6 @@ export const purchaseArtwork = (
     return async(dispatch) => {
         dispatch( clearPurchaseState() );
         dispatch( clearSupportState() );
-        console.log('[purchaseArtwork]');
 
         dispatch( purchaseArtworkStart() );
         let currentPrice = await contract.methods.getCurrentPrice(tokenId).call();
@@ -327,7 +320,6 @@ export const purchaseArtworkWithWeb3Browser = (
 ) => {
     return async (dispatch) => {
         dispatch( purchaseArtworkStart() );
-        console.log('[purchaseArtworkWithWeb3Browser]');
         methods.buyArtworkToCreator( artworkId )
             .send({ 
                 from: account, 
@@ -336,7 +328,6 @@ export const purchaseArtworkWithWeb3Browser = (
                 // gasPrice: 100000000000
             })
             .then(response => {
-                console.log('response = ', response);
                 if (response.status === true) {
                     dispatch( purchaseArtworkSuccess( account, currentPrice ) );
                     dispatch( fetchAddressInfo(web3, account, methods, true ) );
@@ -357,7 +348,6 @@ export const purchaseArtworkWithWeb3Manual = (
     web3, wallet, gas, gasPrice, gasLimit
 ) => {
     return dispatch => {
-        console.log('[supportArtworkWithWeb3Manual]');
         const supportArtworkData = contract.methods.buyArtworkToCreator( artworkId )
         dispatch( sendSignedTransaction(
             'purchase',

@@ -52,7 +52,11 @@ class CreateAccount extends React.Component {
 
     createAccountHandler = ( event ) => {
         event.preventDefault();
-        this.props.onGetAddressFromSeed( this.state.seed.value, this.props.userId, this.props.idToken );
+        this.props.onGetAddressFromSeed( 
+            this.state.seed.value, 
+            this.props.userId, 
+            this.props.idToken 
+        );
         this.props.clickCancel();
     }
 
@@ -103,7 +107,6 @@ const mapStateToProps = state => {
         userId: state.auth.userId,
         idToken: state.auth.idToken,
         // firebase
-
         // web3
         seed: state.web3Objects.seed,
     };
